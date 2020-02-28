@@ -1,0 +1,12 @@
+[
+{
+  "modid": "warp_mod",
+  "name": "Warp Mod",
+  "description": "Forge Port for the DcCraft Warp Plugin from Bukkit",
+  "version": "1.0.0",
+  "mcversion": "1.12.2",
+  "authorList": ["Drew Chase"],
+  "logoFile": "logo.jpeg",
+  "url": "https://www.curseforge.com/minecraft/mc-mods/the-warp-mod"
+}
+]
