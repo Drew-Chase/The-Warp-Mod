@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Implementation-Title: The Warp Mod 1.13.2
+Implementation-Version: 2.0.2
+Specification-Vendor: examplemodsareus
+Specification-Title: examplemod
+Implementation-Timestamp: 2019-08-06T17:22:20-0400
+Specification-Version: 1
+Implementation-Vendor: examplemodsareus
+
