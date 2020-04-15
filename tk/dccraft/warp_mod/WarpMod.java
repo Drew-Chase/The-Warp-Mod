@@ -17,15 +17,15 @@ import tk.dccraft.warp_mod.util.RegistryHandlers;
 /**
  * 
  * Main class instance
+ * 
  * @author Drew Chase
  * @version 1.3.3
  *
  */
-@Mod(modid = References.mod_id, name = References.mod_name, acceptableRemoteVersions = "*")
-public class Main {
+public class WarpMod {
 
 	@Instance
-	public static Main instance;
+	public static WarpMod instance;
 
 	static Logger log;
 
@@ -47,6 +47,7 @@ public class Main {
 
 	/**
 	 * Sends a console message
+	 * 
 	 * @param msg
 	 */
 	public void consoleMessage(String msg) {

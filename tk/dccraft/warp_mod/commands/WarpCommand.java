@@ -29,7 +29,7 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
-import tk.dccraft.warp_mod.Main;
+import tk.dccraft.warp_mod.WarpMod;
 import tk.dccraft.warp_mod.commands.util.Teleport;
 import tk.dccraft.warp_mod.util.ConfigHandler;
 import tk.dccraft.warp_mod.util.WarpUtilities;
@@ -310,16 +310,16 @@ public class WarpCommand extends WarpUtilities implements ICommand {
 						if (args[1].equalsIgnoreCase(p.getDisplayNameString())) {
 							for (String s : getWarps(p)) {
 								if (!s.equalsIgnoreCase(getWarps(p).get(getWarps(p).size() - 1))) {
-									Main.instance.consoleMessage(s + ", ");
+									WarpMod.instance.consoleMessage(s + ", ");
 								}
-								Main.instance.consoleMessage(s);
+								WarpMod.instance.consoleMessage(s);
 							}
 						}
 					}
 					return;
 				}
 			}
-			Main.instance.consoleMessage("Sender isn't a Player");
+			WarpMod.instance.consoleMessage("Sender isn't a Player");
 		}
 	}
 

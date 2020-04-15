@@ -25,7 +25,7 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
-import tk.dccraft.warp_mod.Main;
+import tk.dccraft.warp_mod.WarpMod;
 import tk.dccraft.warp_mod.commands.util.Teleport;
 
 /**
@@ -78,7 +78,7 @@ public class WarpUtilities {
 						return;
 					}
 				} catch (NullPointerException e) {
-					Main.instance.consoleMessage("This Returned NULL: MESSAGE->" + e.getMessage() + " | CAUSE->" + e.getCause());
+					WarpMod.instance.consoleMessage("This Returned NULL: MESSAGE->" + e.getMessage() + " | CAUSE->" + e.getCause());
 					e.printStackTrace();
 					break;
 				} catch (Exception e) {
@@ -113,10 +113,10 @@ public class WarpUtilities {
 
 		try {
 			if (f.mkdirs()) {
-				Main.instance.consoleMessage("Warp File Created in " + f.getAbsolutePath());
+				WarpMod.instance.consoleMessage("Warp File Created in " + f.getAbsolutePath());
 			}
 		} catch (Exception e) {
-			Main.instance.consoleMessage("Couldn't Create File");
+			WarpMod.instance.consoleMessage("Couldn't Create File");
 			e.printStackTrace();
 		}
 		try {
@@ -321,7 +321,7 @@ public class WarpUtilities {
 	 */
 	public void setPlayer(EntityPlayer player) {
 		this.player = player;
-		Main.instance.consoleMessage("Player set as " + player.getDisplayNameString());
+		WarpMod.instance.consoleMessage("Player set as " + player.getDisplayNameString());
 	}
 
 	/**
@@ -486,10 +486,10 @@ public class WarpUtilities {
 
 			try {
 				if (f.mkdirs()) {
-					Main.instance.consoleMessage("Warp File Created in " + f.getAbsolutePath());
+					WarpMod.instance.consoleMessage("Warp File Created in " + f.getAbsolutePath());
 				}
 			} catch (Exception e) {
-				Main.instance.consoleMessage("Couldn't Create File");
+				WarpMod.instance.consoleMessage("Couldn't Create File");
 				e.printStackTrace();
 			}
 			FileName = player.getDisplayNameString() + "_" + player.getServer().getFolderName() + ".conf";
@@ -622,7 +622,7 @@ public class WarpUtilities {
 						this.warps.put(new AbstractMap.SimpleEntry<EntityPlayerMP, String>((EntityPlayerMP) player, text[0].replace(":", "")), new AbstractMap.SimpleEntry<Map.Entry<BlockPos, Entry<Float, Float>>, Integer>(pos_rot, dimension));
 						warps.add(text[0]);
 					} catch (NullPointerException e) {
-						Main.instance.consoleMessage("This Returned NULL: MESSAGE->" + e.getMessage() + " | CAUSE->" + e.getCause());
+						WarpMod.instance.consoleMessage("This Returned NULL: MESSAGE->" + e.getMessage() + " | CAUSE->" + e.getCause());
 						e.printStackTrace();
 						break;
 					} catch (Exception e) {
@@ -675,9 +675,9 @@ public class WarpUtilities {
 						this.warps.put(new AbstractMap.SimpleEntry<EntityPlayerMP, String>((EntityPlayerMP) player, text[0].replace(":", "")), new AbstractMap.SimpleEntry<Map.Entry<BlockPos, Entry<Float, Float>>, Integer>(pos_rot, dimension));
 						warps.add(text[0]);
 						sendMessage(text[0] + " added");
-						Main.instance.consoleMessage(text[0] + " added");
+						WarpMod.instance.consoleMessage(text[0] + " added");
 					} catch (NullPointerException e) {
-						Main.instance.consoleMessage("This Returned NULL: MESSAGE->" + e.getMessage() + " | CAUSE->" + e.getCause());
+						WarpMod.instance.consoleMessage("This Returned NULL: MESSAGE->" + e.getMessage() + " | CAUSE->" + e.getCause());
 						e.printStackTrace();
 						break;
 					} catch (Exception e) {

@@ -9,7 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import tk.dccraft.warp_mod.Main;
+import tk.dccraft.warp_mod.WarpMod;
 
 /**
  * Handles a custom (non-forge) configuration system
@@ -35,7 +35,7 @@ public class ConfigHandler {
 	public static void loadConfig(String fileName) {
 		try {
 			br = new BufferedReader(new FileReader(getFolderLocation() + fileName));
-			Main.instance.consoleMessage("Loading Config " + fileName);
+			WarpMod.instance.consoleMessage("Loading Config " + fileName);
 			String line = br.readLine();
 			String text = "";
 			while (line != null) {
@@ -123,7 +123,7 @@ public class ConfigHandler {
 		File f = new File(getFolderLocation());
 
 		if (f.mkdirs())
-			Main.instance.consoleMessage("Creating File in " + f.getAbsolutePath());
+			WarpMod.instance.consoleMessage("Creating File in " + f.getAbsolutePath());
 
 		try {
 			bw = new BufferedWriter(new FileWriter(getFolderLocation() + fileName, false));
@@ -137,7 +137,7 @@ public class ConfigHandler {
 			if (bw != null) {
 				try {
 					bw.close();
-					Main.instance.consoleMessage("Saving Config: " + fileName);
+					WarpMod.instance.consoleMessage("Saving Config: " + fileName);
 					loadConfig(fileName);
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -209,7 +209,7 @@ public class ConfigHandler {
 	 * @param value
 	 */
 	public static void setOverrideGameMode(boolean value) {
-		Main.instance.consoleMessage("Gamemode Override is set to " + value);
+		WarpMod.instance.consoleMessage("Gamemode Override is set to " + value);
 		gamemode_override = value;
 	}
 
@@ -219,7 +219,7 @@ public class ConfigHandler {
 	 * @param value
 	 */
 	public static void setIsSpecatatorAllowed(boolean value) {
-		Main.instance.consoleMessage("Spectate Mode is set to " + value);
+		WarpMod.instance.consoleMessage("Spectate Mode is set to " + value);
 		specatorMode = value;
 	}
 
@@ -229,7 +229,7 @@ public class ConfigHandler {
 	 * @param value
 	 */
 	public static void setIsOpAllowed(boolean value) {
-		Main.instance.consoleMessage("Opps Allowed is set to " + value);
+		WarpMod.instance.consoleMessage("Opps Allowed is set to " + value);
 		opAllowed = value;
 	}
 
@@ -240,7 +240,7 @@ public class ConfigHandler {
 	 */
 	public static void setDebugMode(boolean value) {
 		if (value)
-			Main.instance.consoleMessage("Debug Mode is enabled");
+			WarpMod.instance.consoleMessage("Debug Mode is enabled");
 		debug = value;
 	}
 
@@ -250,7 +250,7 @@ public class ConfigHandler {
 	 * @param value
 	 */
 	public static void setIsCreativeAllowed(boolean value) {
-		Main.instance.consoleMessage("Creative Mode Allowed is set to " + value);
+		WarpMod.instance.consoleMessage("Creative Mode Allowed is set to " + value);
 		creativeAllowed = value;
 	}
 
