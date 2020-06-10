@@ -24,46 +24,103 @@ public final class WarpConfigCommand implements ICommand {
 		if (sender instanceof EntityPlayer) {
 			player = (EntityPlayer) sender;
 
-			if (args.length != 0) {
-
-				if (args[0].equalsIgnoreCase("set") && args.length == 3) {
-					if (args[1].equalsIgnoreCase("debug")) {
-						if (args[2].equalsIgnoreCase("true")) {
-							setDebug(true);
-						} else if (args[2].equalsIgnoreCase("false")) {
-							setDebug(false);
-						} else {
-							sendMessage(TextFormatting.RED + "Debug can NOT be set to " + args[2] + ".  It has to be true or false");
-						}
-					}
-
-					if (args[1].equalsIgnoreCase("public-allowed")) {
-						if (args[2].equalsIgnoreCase("true")) {
-							setPublicAllowed(true);
-						} else if (args[2].equalsIgnoreCase("false")) {
-							setPublicAllowed(false);
-						} else {
-							sendMessage(TextFormatting.RED + "public-allowed can NOT be set to " + args[2] + ".  It has to be true or false");
-						}
-					}
-				}
-
-				if (args[0].equalsIgnoreCase("add") && args.length == 3) {
-
-					if (args[1].equalsIgnoreCase("config-editors")) {
-						EntityPlayerMP editor = null;
-						for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
-							if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
-								editor = player;
-								break;
+			if (player != null && !player.getServer().isSinglePlayer()) {
+				if (args.length != 0) {
+					if (args[0].equalsIgnoreCase("set") && args.length == 3) {
+						if (args[1].equalsIgnoreCase("debug")) {
+							if (args[2].equalsIgnoreCase("true")) {
+								setDebug(true);
+							} else if (args[2].equalsIgnoreCase("false")) {
+								setDebug(false);
+							} else {
+								sendMessage(TextFormatting.RED + "Debug can NOT be set to " + args[2] + ".  It has to be true or false");
 							}
 						}
-						addConfigEditor(editor);
+
+						if (args[1].equalsIgnoreCase("public-allowed")) {
+							if (args[2].equalsIgnoreCase("true")) {
+								setPublicAllowed(true);
+							} else if (args[2].equalsIgnoreCase("false")) {
+								setPublicAllowed(false);
+							} else {
+								sendMessage(TextFormatting.RED + "public-allowed can NOT be set to " + args[2] + ".  It has to be true or false");
+							}
+						}
 					}
 
-					if (args[1].equalsIgnoreCase("allowed-players")) {
-						if (args[2].equalsIgnoreCase("*") || args[2].equalsIgnoreCase("@a")) {
-							addAllowedPlayer((EntityPlayerMP[]) getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers().toArray());
+					if (args[0].equalsIgnoreCase("add") && args.length == 3) {
+
+						if (args[1].equalsIgnoreCase("config-editors")) {
+							EntityPlayerMP editor = null;
+							for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
+								if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
+									editor = player;
+									break;
+								}
+							}
+							addConfigEditor(editor);
+						}
+
+						if (args[1].equalsIgnoreCase("allowed-players")) {
+							if (args[2].equalsIgnoreCase("*") || args[2].equalsIgnoreCase("@a")) {
+								addAllowedPlayer((EntityPlayerMP[]) getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers().toArray());
+							} else {
+								EntityPlayerMP allowed = null;
+								for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
+									if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
+										allowed = player;
+										break;
+									}
+								}
+								addAllowedPlayer(allowed);
+							}
+						}
+
+						if (args[1].equalsIgnoreCase("allowed-public-players")) {
+							addAllowedPublicPlayers((EntityPlayerMP[]) getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers().toArray());
+						} else {
+
+							EntityPlayerMP allowed = null;
+							for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
+								if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
+									allowed = player;
+									break;
+								}
+							}
+							addAllowedPublicPlayers(allowed);
+						}
+					}
+
+					if (args[0].equalsIgnoreCase("remove") && args.length == 3) {
+
+						if (args[1].equalsIgnoreCase("config-editors")) {
+							EntityPlayerMP editor = null;
+							for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
+								if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
+									editor = player;
+									break;
+								}
+							}
+							removeConfigEditor(editor);
+						}
+
+						if (args[1].equalsIgnoreCase("allowed-players")) {
+							if (args[2].equalsIgnoreCase("*") || args[2].equalsIgnoreCase("@a")) {
+								clearAllowedPlayers();
+							} else {
+								EntityPlayerMP allowed = null;
+								for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
+									if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
+										allowed = player;
+										break;
+									}
+								}
+								removeAllowedPlayers(allowed);
+							}
+						}
+
+						if (args[1].equalsIgnoreCase("allowed-public-players")) {
+							clearAllowedPublicPlayers();
 						} else {
 							EntityPlayerMP allowed = null;
 							for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
@@ -72,89 +129,37 @@ public final class WarpConfigCommand implements ICommand {
 									break;
 								}
 							}
-							addAllowedPlayer(allowed);
+							removeAllowedPublicPlayers(allowed);
 						}
 					}
 
-					if (args[1].equalsIgnoreCase("allowed-public-players")) {
-						addAllowedPublicPlayers((EntityPlayerMP[]) getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers().toArray());
-					} else {
+					if (args[0].equalsIgnoreCase("get") && args.length == 2) {
 
-						EntityPlayerMP allowed = null;
-						for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
-							if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
-								allowed = player;
-								break;
-							}
+						if (args[1].equalsIgnoreCase("debug")) {
+							getDebugMode();
 						}
-						addAllowedPublicPlayers(allowed);
+
+						if (args[1].equalsIgnoreCase("public-allowed")) {
+							getPublicWarps();
+						}
+
+						if (args[1].equalsIgnoreCase("config-editors")) {
+							getConfigEditor();
+						}
+
+						if (args[1].equalsIgnoreCase("allowed-players")) {
+							getAllowedPlayers();
+						}
+
+						if (args[1].equalsIgnoreCase("allowed-public-players")) {
+							getAllowedPublicPlayers();
+						}
 					}
 				}
-
-				if (args[0].equalsIgnoreCase("remove") && args.length == 3) {
-
-					if (args[1].equalsIgnoreCase("config-editors")) {
-						EntityPlayerMP editor = null;
-						for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
-							if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
-								editor = player;
-								break;
-							}
-						}
-						removeConfigEditor(editor);
-					}
-
-					if (args[1].equalsIgnoreCase("allowed-players")) {
-						if (args[2].equalsIgnoreCase("*") || args[2].equalsIgnoreCase("@a")) {
-							clearAllowedPlayers();
-						} else {
-							EntityPlayerMP allowed = null;
-							for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
-								if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
-									allowed = player;
-									break;
-								}
-							}
-							removeAllowedPlayers(allowed);
-						}
-					}
-
-					if (args[1].equalsIgnoreCase("allowed-public-players")) {
-						clearAllowedPublicPlayers();
-					} else {
-						EntityPlayerMP allowed = null;
-						for (EntityPlayerMP player : getPlayer().getServer().getEntityWorld().getMinecraftServer().getPlayerList().getPlayers()) {
-							if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
-								allowed = player;
-								break;
-							}
-						}
-						removeAllowedPublicPlayers(allowed);
-					}
-				}
-
-				if (args[0].equalsIgnoreCase("get") && args.length == 2) {
-
-					if (args[1].equalsIgnoreCase("debug")) {
-						getDebugMode();
-					}
-
-					if (args[1].equalsIgnoreCase("public-allowed")) {
-						getPublicWarps();
-					}
-
-					if (args[1].equalsIgnoreCase("config-editors")) {
-						getConfigEditor();
-					}
-
-					if (args[1].equalsIgnoreCase("allowed-players")) {
-						getAllowedPlayers();
-					}
-
-					if (args[1].equalsIgnoreCase("allowed-public-players")) {
-						getAllowedPublicPlayers();
-					}
-				}
+			} else if (player == null) {
+				return;
+			} else if (player.getServer().isSinglePlayer()) {
+				sendMessage(TextFormatting.RED + "warp-config command is not available in single-player".toUpperCase());
 			}
 		}
 	}
@@ -450,54 +455,50 @@ public final class WarpConfigCommand implements ICommand {
 	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos targetPos) {
 		List<String> value = new ArrayList<String>();
 		if (args.length == 1) {
-			if (args[2].startsWith("get"))
+			if ("get".startsWith(args[0]))
 				value.add("get");
-			if (args[2].startsWith("set"))
+			if ("set".startsWith(args[0]))
 				value.add("set");
-			if (args[2].startsWith("add"))
+			if ("add".startsWith(args[0]))
 				value.add("add");
-			if (args[2].startsWith("remove"))
+			if ("remove".startsWith(args[0]))
 				value.add("remove");
 		}
 
 		if (args.length == 2) {
 			if (args[0].equalsIgnoreCase("get")) {
-				if (args[2].startsWith("debug"))
+				if ("debug".startsWith(args[1]))
 					value.add("debug");
-				if (args[2].startsWith("public-allowed"))
+				if ("public-allowed".startsWith(args[1]))
 					value.add("public-allowed");
-				if (args[2].startsWith("allowed-public-players"))
+				if ("allowed-public-players".startsWith(args[1]))
 					value.add("allowed-public-players");
-				if (args[2].startsWith("allowed-players"))
+				if ("allowed-players".startsWith(args[1]))
 					value.add("allowed-players");
-				if (args[2].startsWith("config-editors"))
+				if ("config-editors".startsWith(args[1]))
 					value.add("config-editors");
 			}
 
 			if (args[0].equalsIgnoreCase("set")) {
-				value.add("debug");
-				value.add("public-allowed");
+				if ("debug".startsWith(args[1]))
+					value.add("debug");
+				if ("public-allowed".startsWith(args[1]))
+					value.add("public-allowed");
 			}
 
-			if (args[0].equalsIgnoreCase("add") || args[1].equalsIgnoreCase("remove")) {
-				if (args[2].startsWith("allowed-public-players"))
+			if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("remove")) {
+				if ("allowed-public-players".startsWith(args[1]))
 					value.add("allowed-public-players");
-				if (args[2].startsWith("allowed-players"))
+				if ("allowed-players".startsWith(args[1]))
 					value.add("allowed-players");
-				if (args[2].startsWith("config-editors"))
+				if ("config-editors".startsWith(args[1]))
 					value.add("config-editors");
 			}
 		}
 		if (args.length == 3) {
 			if (args[0].equalsIgnoreCase("set")) {
-				if (args[1].equalsIgnoreCase("debug")) {
-					if (args[2].startsWith("true"))
-						value.add("true");
-					else
-						value.add("false");
-				}
-				if (args[1].equalsIgnoreCase("public-allowed")) {
-					if (args[2].startsWith("true"))
+				if (args[1].equalsIgnoreCase("debug") || args[1].equalsIgnoreCase("public-allowed")) {
+					if ("true".startsWith(args[2]))
 						value.add("true");
 					else
 						value.add("false");
@@ -506,7 +507,7 @@ public final class WarpConfigCommand implements ICommand {
 			if (args[0].equalsIgnoreCase("remove")) {
 				value.add("*");
 				for (EntityPlayer player : server.getPlayerList().getPlayers()) {
-					if (args[2].startsWith(player.getDisplayNameString()))
+					if (player.getDisplayNameString().startsWith(args[2]))
 						value.add(player.getDisplayNameString());
 				}
 			}

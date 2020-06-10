@@ -64,118 +64,121 @@ public class WarpCommand implements ICommand {
 	public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 		if (sender instanceof EntityPlayer)
 			player = (EntityPlayer) sender;
-		if (args.length != 0) {
+		if (player != null) {
+			importAllWarps(player);
+			if (args.length != 0) {
 
-			if (args.length == 1) {
-				if (args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("?")) {
-					getHelp();
-				}
-				if (args[0].equalsIgnoreCase("list")) {
-					listWarps();
-				}
+				if (args.length == 1) {
+					if (args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("?")) {
+						getHelp();
+					}
+					if (args[0].equalsIgnoreCase("list")) {
+						listWarps();
+					}
 
-				if (args[0].equalsIgnoreCase("map")) {
-					mapWarps();
-				}
+					if (args[0].equalsIgnoreCase("map")) {
+						mapWarps();
+					}
 
-				if (args[0].equalsIgnoreCase("spawn")) {
-					warpToSpawn();
-				}
-				for (Warp warp : warps.getWarps()) {
-					if (args[0].equalsIgnoreCase(warp.getName())) {
-						warpTo(warp);
+					if (args[0].equalsIgnoreCase("spawn")) {
+						warpToSpawn();
+					}
+					for (Warp warp : warps.getWarps()) {
+						if (args[0].equalsIgnoreCase(warp.getName())) {
+							warpTo(warp);
+						}
+					}
+
+					if (args[0].equalsIgnoreCase("random")) {
+						warpRandom(600);
 					}
 				}
 
-				if (args[0].equalsIgnoreCase("random")) {
-					warpRandom(600);
-				}
-			}
-
-			if (args.length == 2) {
-				if (args[0].equalsIgnoreCase("set")) {
-					setWarp(args[1]);
-				}
-
-				if (args[0].equalsIgnoreCase("remove")) {
-					remove(args[1]);
-				}
-
-				if (args[0].equalsIgnoreCase("random")) {
-					int range = 0;
-					try {
-						range = Integer.parseInt(args[1]);
-					} catch (NumberFormatException e) {
-						sendMessage(TextFormatting.RED + args[1] + " Could NOT be Understood as a Whole Number");
-					} catch (Exception e) {
-						sendMessage(TextFormatting.RED + "Unknown Error when warping random with a range of " + args[1]);
+				if (args.length == 2) {
+					if (args[0].equalsIgnoreCase("set")) {
+						setWarp(args[1]);
 					}
-					if (range != 0)
-						warpRandom(range);
-				}
 
-				if (args[0].equalsIgnoreCase("me")) {
+					if (args[0].equalsIgnoreCase("remove")) {
+						remove(args[1]);
+					}
+
+					if (args[0].equalsIgnoreCase("random")) {
+						int range = 0;
+						try {
+							range = Integer.parseInt(args[1]);
+						} catch (NumberFormatException e) {
+							sendMessage(TextFormatting.RED + args[1] + " Could NOT be Understood as a Whole Number");
+						} catch (Exception e) {
+							sendMessage(TextFormatting.RED + "Unknown Error when warping random with a range of " + args[1]);
+						}
+						if (range != 0)
+							warpRandom(range);
+					}
+
+					if (args[0].equalsIgnoreCase("me")) {
+						for (EntityPlayer player : getOnlinePlayers()) {
+							if (args[1].equalsIgnoreCase(player.getDisplayNameString())) {
+								warpTo(player);
+							}
+						}
+					}
 					for (EntityPlayer player : getOnlinePlayers()) {
-						if (args[1].equalsIgnoreCase(player.getDisplayNameString())) {
-							warpTo(player);
+						if (args[0].equalsIgnoreCase(player.getDisplayNameString()) && args[1].equalsIgnoreCase("me")) {
+							warpToMe(player);
+						}
+					}
+
+				}
+
+				if (args.length == 3) {
+
+					if (args[0].equalsIgnoreCase("invite")) {
+						for (EntityPlayer player : getOnlinePlayers()) {
+							if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
+								invite(warps.getWarp(args[1]), player);
+								break;
+							}
+						}
+					}
+
+					if (args[0].equalsIgnoreCase("rename")) {
+						rename(args[1], args[2]);
+					}
+					if (args[0].equalsIgnoreCase("set")) {
+						if (args[2].equalsIgnoreCase("-p")) {
+							setPublicWarp(args[1]);
+						}
+					}
+					if (args[0].equalsIgnoreCase("list")) {
+						if (args[2].equalsIgnoreCase("-p")) {
+							listPublicWarps();
+						}
+					}
+					if (args[0].equalsIgnoreCase("map")) {
+						if (args[2].equalsIgnoreCase("-p")) {
+							mapPublicWarps();
+						}
+					}
+
+					if (args[0].equalsIgnoreCase("remove")) {
+						if (args[2].equalsIgnoreCase("-p")) {
+							removePublic(args[1]);
 						}
 					}
 				}
-				for (EntityPlayer player : getOnlinePlayers()) {
-					if (args[0].equalsIgnoreCase(player.getDisplayNameString()) && args[1].equalsIgnoreCase("me")) {
-						warpToMe(player);
-					}
-				}
 
-			}
-
-			if (args.length == 3) {
-
-				if (args[0].equalsIgnoreCase("invite")) {
-					for (EntityPlayer player : getOnlinePlayers()) {
-						if (args[2].equalsIgnoreCase(player.getDisplayNameString())) {
-							invite(warps.getWarp(args[1]), player);
-							break;
+				if (args.length == 4) {
+					if (args[0].equalsIgnoreCase("rename")) {
+						if (args[3].equalsIgnoreCase("-p")) {
+							renamePublic(args[1], args[2]);
 						}
 					}
 				}
 
-				if (args[0].equalsIgnoreCase("rename")) {
-					rename(args[1], args[2]);
-				}
-				if (args[0].equalsIgnoreCase("set")) {
-					if (args[2].equalsIgnoreCase("-p")) {
-						setPublicWarp(args[1]);
-					}
-				}
-				if (args[0].equalsIgnoreCase("list")) {
-					if (args[2].equalsIgnoreCase("-p")) {
-						listPublicWarps();
-					}
-				}
-				if (args[0].equalsIgnoreCase("map")) {
-					if (args[2].equalsIgnoreCase("-p")) {
-						mapPublicWarps();
-					}
-				}
-
-				if (args[0].equalsIgnoreCase("remove")) {
-					if (args[2].equalsIgnoreCase("-p")) {
-						removePublic(args[1]);
-					}
-				}
+			} else {
+				sendMessage(TextFormatting.GOLD + "Type /warp help");
 			}
-
-			if (args.length == 4) {
-				if (args[0].equalsIgnoreCase("rename")) {
-					if (args[3].equalsIgnoreCase("-p")) {
-						renamePublic(args[1], args[2]);
-					}
-				}
-			}
-
-		} else {
-			sendMessage(TextFormatting.GOLD + "Type /warp help");
 		}
 	}
 
@@ -283,8 +286,9 @@ public class WarpCommand implements ICommand {
 	}
 
 	public boolean isAllowed(boolean global, String... errorMessage) {
-		if (getPlayer().getServer().isSinglePlayer())
+		if (getPlayer().getServer().isSinglePlayer()) {
 			return true;
+		}
 		if (getPlayer() != null) {
 			ConfigHandler.readConfig();
 			if (!global) {
@@ -1539,43 +1543,47 @@ public class WarpCommand implements ICommand {
 	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos targetPos) {
 		if (sender instanceof EntityPlayer)
 			setPlayer((EntityPlayer) sender);
+		if (player != null)
+			importAllWarps(player);
 		List<String> value = new ArrayList<String>();
 		if (args.length == 1) {
-			if (args[0].startsWith("set"))
+			if ("set".startsWith(args[0]))
 				value.add("set");
-			if (args[0].startsWith("random"))
+			if ("random".startsWith(args[0]))
 				value.add("random");
-			if (args[0].startsWith("rename"))
+			if ("rename".startsWith(args[0]))
 				value.add("rename");
-			if (args[0].startsWith("spawn"))
+			if ("spawn".startsWith(args[0]))
 				value.add("spawn");
-			if (args[0].startsWith("remove"))
+			if ("remove".startsWith(args[0]))
 				value.add("remove");
-			if (args[0].startsWith("me"))
+			if ("me".startsWith(args[0]))
 				value.add("me");
+			if ("list".startsWith(args[0]))
+				value.add("list");
+			if ("map".startsWith(args[0]))
+				value.add("map");
 			for (EntityPlayer player : getOnlinePlayers())
-				if (args[0].startsWith(player.getDisplayNameString()))
+				if (player.getDisplayNameString().startsWith(args[0]))
 					value.add(player.getDisplayNameString());
 			for (Warp warp : warps.getWarps())
-				if (args[0].startsWith(warp.getName()))
+				if (warp.getName().startsWith(args[0]))
 					value.add(warp.getName());
-		}
-
-		if (args.length == 2) {
+		} else if (args.length == 2) {
 
 			if (args[0].equalsIgnoreCase("me"))
 				for (EntityPlayer player : getOnlinePlayers())
-					if (args[1].startsWith(player.getDisplayNameString()))
+					if (player.getDisplayNameString().startsWith(args[1]))
 						value.add(player.getDisplayNameString());
 
 			if (args[0].equalsIgnoreCase("rename"))
 				for (Warp warp : warps.getWarps())
-					if (args[1].startsWith(warp.getName()))
+					if (warp.getName().startsWith(args[1]))
 						value.add(warp.getName());
 
 			if (args[0].equalsIgnoreCase("remove"))
 				for (Warp warp : warps.getWarps())
-					if (args[1].startsWith(warp.getName()))
+					if (warp.getName().startsWith(args[1]))
 						value.add(warp.getName());
 
 			for (EntityPlayer player : getOnlinePlayers())
@@ -1584,16 +1592,15 @@ public class WarpCommand implements ICommand {
 
 			if (args[0].equalsIgnoreCase("invite"))
 				for (Warp warp : warps.getWarps())
-					if (args[1].startsWith(warp.getName()))
+					if (warp.getName().startsWith(args[1]))
 						value.add(warp.getName());
 
-		}
-		if (args.length == 3) {
+		} else if (args.length == 3) {
 			if (args[0].equalsIgnoreCase("invite")) {
 				for (Warp warp : warps.getWarps()) {
 					if (args[1].equalsIgnoreCase(warp.getName())) {
 						for (EntityPlayer player : getOnlinePlayers()) {
-							if (args[1].startsWith(player.getDisplayNameString()))
+							if (player.getDisplayNameString().startsWith(args[1]))
 								value.add(player.getDisplayNameString());
 						}
 					}
