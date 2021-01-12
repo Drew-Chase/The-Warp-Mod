@@ -10,9 +10,9 @@ import java.util.concurrent.TimeoutException;
 import com.drewchaseproject.forge.WarpMod.WarpMod;
 import com.drewchaseproject.forge.WarpMod.WarpMod.LogType;
 import com.drewchaseproject.forge.WarpMod.commands.WarpCommand;
+import com.drewchaseproject.forge.WarpMod.util.WarpPlayer;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -57,15 +57,14 @@ public class CommandHandler {
 		@SubscribeEvent
 		public void onLivingDeath(LivingDeathEvent event) {
 			Entity e = event.getEntityLiving();
-			if (e instanceof PlayerEntity) {
+			if (e instanceof WarpPlayer) {
 				try {
-					PlayerEntity player = (PlayerEntity) e;
+					WarpPlayer player = (WarpPlayer) e;
 					WarpCommand wc = new WarpCommand();
 					wc.setPlayer(player);
-					BlockPos pos = player.getPosition();
+					BlockPos pos = new BlockPos(player.getPosX(), player.getPosY(), player.getPosZ());
 					float yaw = player.prevRotationYaw, pitch = player.prevRotationPitch;
-					int dimension = player.dimension.getId();
-					wc.back(pos, yaw, pitch, dimension, player);
+					wc.back(pos, yaw, pitch, player);
 				} catch (NullPointerException ex) {
 					ex.printStackTrace();
 					return;

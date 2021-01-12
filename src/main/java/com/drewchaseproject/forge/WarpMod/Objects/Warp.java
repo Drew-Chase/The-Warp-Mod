@@ -1,7 +1,10 @@
 package com.drewchaseproject.forge.WarpMod.Objects;
 
-import net.minecraft.entity.player.PlayerEntity;
+import com.drewchaseproject.forge.WarpMod.util.WarpPlayer;
+
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.server.ServerWorld;
 
 public class Warp {
 
@@ -12,10 +15,11 @@ public class Warp {
 	}
 
 	private BlockPos pos;
-	private int Dimension;
 	private float yaw, pitch;
 	private String name;
-	private PlayerEntity player;
+	private WarpPlayer player;
+	private ServerWorld world;
+	private ResourceLocation location;
 
 	/**
 	 * Creates a Warp Object
@@ -27,13 +31,24 @@ public class Warp {
 	 * @param yaw
 	 * @param pitch
 	 */
-	public Warp(String name, BlockPos pos, int dim, PlayerEntity player, float yaw, float pitch) {
+	public Warp(String name, BlockPos pos, WarpPlayer player, float yaw, float pitch, ServerWorld world, ResourceLocation location) {
 		setPos(pos);
 		setName(name);
 		setPlayer(player);
-		setDimension(dim);
 		setYaw(yaw);
 		setPitch(pitch);
+		setServerWorld(world);
+		setDimensionResourceLocation(location);
+	}
+
+	public Warp(String name, BlockPos pos, WarpPlayer player, ServerWorld world, ResourceLocation location) {
+		setPos(pos);
+		setName(name);
+		setPlayer(player);
+		setYaw(0f);
+		setPitch(0f);
+		setServerWorld(world);
+		setDimensionResourceLocation(location);
 	}
 
 	/**
@@ -48,6 +63,22 @@ public class Warp {
 	 */
 	public void setPos(BlockPos pos) {
 		this.pos = pos;
+	}
+
+	public void setServerWorld(ServerWorld value) {
+		this.world = value;
+	}
+
+	public ServerWorld getServerWorld() {
+		return world;
+	}
+
+	public void setDimensionResourceLocation(ResourceLocation value) {
+		this.location = value;
+	}
+
+	public ResourceLocation getDimensionResourceLocation() {
+		return location;
 	}
 
 	/**
@@ -69,20 +100,6 @@ public class Warp {
 	 */
 	public int getZ() {
 		return getPos().getZ();
-	}
-
-	/**
-	 * @return the dimension
-	 */
-	public int getDimension() {
-		return Dimension;
-	}
-
-	/**
-	 * @param dimension the dimension to set
-	 */
-	public void setDimension(int dimension) {
-		Dimension = dimension;
 	}
 
 	/**
@@ -130,14 +147,14 @@ public class Warp {
 	/**
 	 * @return the player
 	 */
-	public PlayerEntity getPlayer() {
+	public WarpPlayer getPlayer() {
 		return player;
 	}
 
 	/**
 	 * @param player the player to set
 	 */
-	public void setPlayer(PlayerEntity player) {
+	public void setPlayer(WarpPlayer player) {
 		this.player = player;
 	}
 
@@ -146,7 +163,7 @@ public class Warp {
 		try {
 			if (obj instanceof Warp) {
 				Warp j = (Warp) obj;
-				return (j.getName().equals(getName()) && j.getPlayer().equals(getPlayer()) && j.getDimension() == getDimension() && j.getX() == getX() && j.getY() == getY() && j.getZ() == getZ());
+				return (j.getName().equals(getName()) && j.getPlayer().equals(getPlayer()) && j.getServerWorld() == getServerWorld() && j.getX() == getX() && j.getY() == getY() && j.getZ() == getZ());
 			}
 		} catch (Exception e) {
 			return false;

@@ -28,6 +28,10 @@ public class ConfigHandler {
 	private static List<String> public_players = new ArrayList<String>(), all_players = new ArrayList<String>(), all_config_players = new ArrayList<String>();
 
 	public static void writeConfig() {
+		writeConfig(config());
+	}
+
+	public static void writeConfig(List<String> cfg) {
 		if (getFileName().isEmpty())
 			setFileName("settings.conf");
 		File f = new File(getFolderName());
@@ -42,7 +46,7 @@ public class ConfigHandler {
 
 		try {
 			bw = new BufferedWriter(new FileWriter(getFolderName() + getFileName(), false));
-			for (String s : config()) {
+			for (String s : cfg) {
 				bw.write(s);
 			}
 			bw.flush();
@@ -60,6 +64,29 @@ public class ConfigHandler {
 
 //		readConfig();
 
+	}
+
+	public static List<String> defaultConfig() {
+		List<String> l = new ArrayList<>();
+		String value = "";
+		l.add("#All Configurations can be controlled with-in the game using the \"/warp-config\" Command\n#You can add your username below under \"players allowed to change config:\" section or in server console with the \"/warp-config add config-editors LittleBilly101\"\n\n");
+		l.add("#Sets if public warps are allowed.\n#Public warps are created by the allowed player typing /warp set NAME_OF_WARP -p\n");
+		l.add("\npublic-warps-allowed:false");
+		l.add("\n#Sets players that are allowed to create public warps.\n#Ex: (allowed-players-public:[\"LittleBilly101\", \"LittleBilly102\"])\n#You can also use * to signify all players are allowed\n#Ex (allowed-players:[\"*\"])\n");
+
+		l.add("\nallowed-players-public:[\"*\"]\n\n");
+		l.add("#Sets if the Mod verbosly states all of its moves\n");
+		l.add("\ndebug-mode:false\n");
+		l.add("\n\n#Are All Players Allowed to use the Mod\n#Ex: (allowed-players:[\"LittleBilly101\", \"LittleBilly102\"]\n#You can also use * to signify all players allowed\n#Ex (allowed-players:[\"*\"])\n");
+
+		value = "";
+		l.add("\nallowed-players:[\"*\"]");
+
+		value = "";
+		l.add("\n\n#Players allowed to change the config within game using /warp-config command\n#The * Wildcard can NOT be used in this situation\n#Ex (players allowed to change config:[\"LittleBilly101]\"");
+		l.add("\nplayers allowed to change config:[]\n");
+
+		return l;
 	}
 
 	public static List<String> config() {
@@ -181,10 +208,10 @@ public class ConfigHandler {
 			}
 			writeConfig();
 		} catch (FileNotFoundException e) {
-			writeConfig();
+			writeConfig(defaultConfig());
 			e.printStackTrace();
 		} catch (Exception e) {
-			writeConfig();
+			writeConfig(defaultConfig());
 			e.printStackTrace();
 		} finally {
 			if (br != null) {

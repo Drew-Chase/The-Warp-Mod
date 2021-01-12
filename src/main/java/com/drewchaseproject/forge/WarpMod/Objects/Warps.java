@@ -3,14 +3,14 @@ package com.drewchaseproject.forge.WarpMod.Objects;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.entity.player.PlayerEntity;
+import com.drewchaseproject.forge.WarpMod.util.WarpPlayer;
 
 public class Warps {
 
 	private List<Warp> warps = new ArrayList<Warp>();
 	private String[] subcommands = new String[] { "set", "random", "map", "list", "help", "reload", "me", "remove", "rename", "invite", "accept" };
 
-	public List<Warp> getWarps(PlayerEntity player) {
+	public List<Warp> getWarps(WarpPlayer player) {
 		List<Warp> value = new ArrayList<Warp>();
 		for (Warp warp : warps) {
 			if (warp.getPlayer().equals(player))
@@ -78,7 +78,7 @@ public class Warps {
 		return false;
 	}
 
-	public void empty(PlayerEntity player, List<Warp> list) {
+	public void empty(WarpPlayer player, List<Warp> list) {
 		for (Warp warp : list) {
 			if (warp.getPlayer().equals(player)) {
 				removeWarp(warp);
@@ -86,7 +86,7 @@ public class Warps {
 		}
 	}
 
-	public boolean isEmpty(PlayerEntity player) {
+	public boolean isEmpty(WarpPlayer player) {
 		return getWarps(player).size() == 0;
 	}
 
@@ -101,7 +101,6 @@ public class Warps {
 			}
 		for (Warp warp : getWarps()) {
 			if (warp.getName().equals(w.getName())) {
-				warp.setDimension(w.getDimension());
 				warp.setPos(w.getPos());
 				warp.setPlayer(w.getPlayer());
 				warp.setPitch(warp.getPitch());
@@ -113,8 +112,8 @@ public class Warps {
 		return true;
 	}
 
-	public List<PlayerEntity> getPlayers() {
-		List<PlayerEntity> players = new ArrayList<PlayerEntity>();
+	public List<WarpPlayer> getPlayers() {
+		List<WarpPlayer> players = new ArrayList<WarpPlayer>();
 
 		for (Warp warp : getWarps()) {
 			if (!players.contains(warp.getPlayer())) {

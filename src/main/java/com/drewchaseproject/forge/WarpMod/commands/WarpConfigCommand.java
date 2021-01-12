@@ -4,20 +4,20 @@ import java.util.Collection;
 
 import com.drewchaseproject.forge.WarpMod.WarpMod;
 import com.drewchaseproject.forge.WarpMod.config.ConfigHandler;
+import com.drewchaseproject.forge.WarpMod.util.WarpPlayer;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.text.TextFormatting;
 
 public final class WarpConfigCommand {
 
-	PlayerEntity player;
+	WarpPlayer player;
 
 	public void register(CommandDispatcher<CommandSource> dispatcher) {
 		dispatcher.register(
@@ -62,37 +62,37 @@ public final class WarpConfigCommand {
 										.executes(context -> getConfigEditor(context.getSource())))));
 	}
 
-	private int getDebugMode(CommandSource source) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int getDebugMode(CommandSource source) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
 		}
 		if (isAllowed()) {
 			String value = ConfigHandler.getDebugMode() ? "Enabled" : "Disabled";
-			sendMessage(source.getEntity(), TextFormatting.AQUA + "Debug Mode is " + TextFormatting.GOLD + value);
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Debug Mode is " + TextFormatting.GOLD + value);
 		}
 		return 1;
 	}
 
-	private int getPublicWarps(CommandSource source) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int getPublicWarps(CommandSource source) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
 		}
 		if (isAllowed()) {
 			String value = ConfigHandler.getPublicWarpsAllowed() ? "Enabled" : "Disabled";
-			sendMessage(source.getEntity(), TextFormatting.AQUA + "Public Warps are " + TextFormatting.GOLD + value);
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Public Warps are " + TextFormatting.GOLD + value);
 		}
 		return 1;
 	}
 
-	private int getConfigEditor(CommandSource source) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int getConfigEditor(CommandSource source) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
@@ -108,16 +108,16 @@ public final class WarpConfigCommand {
 				index++;
 			}
 			if (index > 0)
-				sendMessage(source.getEntity(), TextFormatting.GOLD + value + TextFormatting.AQUA + " are Allowed to Edit Config");
+				sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GOLD + value + TextFormatting.AQUA + " are Allowed to Edit Config");
 			else
-				sendMessage(source.getEntity(), TextFormatting.GOLD + "No Players are Allowed to Edit Config\nHmm How are you using this Command");
+				sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GOLD + "No Players are Allowed to Edit Config\nHmm How are you using this Command");
 		}
 		return 1;
 	}
 
-	private int getAllowedPublicPlayers(CommandSource source) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int getAllowedPublicPlayers(CommandSource source) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
@@ -133,16 +133,16 @@ public final class WarpConfigCommand {
 				index++;
 			}
 			if (index > 0)
-				sendMessage(source.getEntity(), TextFormatting.GOLD + value + TextFormatting.AQUA + " are Allowed to Make Public Warps");
+				sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GOLD + value + TextFormatting.AQUA + " are Allowed to Make Public Warps");
 			else
-				sendMessage(source.getEntity(), TextFormatting.GOLD + "No Players Are Allowed to Make Public Warps!");
+				sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GOLD + "No Players Are Allowed to Make Public Warps!");
 		}
 		return 1;
 	}
 
-	private int getAllowedPlayers(CommandSource source) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int getAllowedPlayers(CommandSource source) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
@@ -158,16 +158,16 @@ public final class WarpConfigCommand {
 				index++;
 			}
 			if (index > 0)
-				sendMessage(source.getEntity(), TextFormatting.GOLD + value + TextFormatting.AQUA + " are Allowed to Use The Warp Mod");
+				sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GOLD + value + TextFormatting.AQUA + " are Allowed to Use The Warp Mod");
 			else
-				sendMessage(source.getEntity(), TextFormatting.GOLD + "No Players Are Allowed!");
+				sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GOLD + "No Players Are Allowed!");
 		}
 		return 1;
 	}
 
-	private int removeConfigEditor(CommandSource source, Collection<ServerPlayerEntity> players) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int removeConfigEditor(CommandSource source, Collection<ServerPlayerEntity> players) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
@@ -175,7 +175,8 @@ public final class WarpConfigCommand {
 		if (isAllowed()) {
 			String value = "";
 			int index = 0;
-			for (ServerPlayerEntity player : players) {
+			for (ServerPlayerEntity entityPlayer : players) {
+				WarpPlayer player = new WarpPlayer(entityPlayer);
 				if (index == (players.size() - 1))
 					value += player.getDisplayName().getString();
 				else
@@ -183,16 +184,16 @@ public final class WarpConfigCommand {
 				ConfigHandler.removeAllowedConfigPlayers(player.getDisplayName().getString());
 				index++;
 			}
-			sendMessage(source.getEntity(), TextFormatting.AQUA + "Removed " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Config Editors Players");
-			sendMessage(source.getEntity(), TextFormatting.GREEN + "Config Updated!");
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Removed " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Config Editors Players");
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GREEN + "Config Updated!");
 			ConfigHandler.writeConfig();
 		}
 		return 1;
 	}
 
-	private int removeAllowedPublicPlayers(CommandSource source, Collection<ServerPlayerEntity> players) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int removeAllowedPublicPlayers(CommandSource source, Collection<ServerPlayerEntity> players) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
@@ -200,7 +201,8 @@ public final class WarpConfigCommand {
 		if (isAllowed()) {
 			String value = "";
 			int index = 0;
-			for (ServerPlayerEntity player : players) {
+			for (ServerPlayerEntity playerEntity : players) {
+				WarpPlayer player = new WarpPlayer(playerEntity);
 				if (index == (players.size() - 1))
 					value += player.getDisplayName().getString();
 				else
@@ -208,16 +210,16 @@ public final class WarpConfigCommand {
 				ConfigHandler.removeAllowedPublicPlayer(player.getDisplayName().getString());
 				index++;
 			}
-			sendMessage(source.getEntity(), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Public Players");
-			sendMessage(source.getEntity(), TextFormatting.GREEN + "Config Updated!");
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Public Players");
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GREEN + "Config Updated!");
 			ConfigHandler.writeConfig();
 		}
 		return 1;
 	}
 
-	private int removeAllowedPlayers(CommandSource source, Collection<ServerPlayerEntity> players) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int removeAllowedPlayers(CommandSource source, Collection<ServerPlayerEntity> players) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
@@ -225,7 +227,8 @@ public final class WarpConfigCommand {
 		if (isAllowed()) {
 			String value = "";
 			int index = 0;
-			for (ServerPlayerEntity player : players) {
+			for (ServerPlayerEntity playerEntity : players) {
+				WarpPlayer player = new WarpPlayer(playerEntity);
 				if (index == (players.size() - 1))
 					value += player.getDisplayName().getString();
 				else
@@ -233,16 +236,20 @@ public final class WarpConfigCommand {
 				ConfigHandler.removeAllowedPlayers(player.getDisplayName().getString());
 				index++;
 			}
-			sendMessage(source.getEntity(), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Players");
-			sendMessage(source.getEntity(), TextFormatting.GREEN + "Config Updated!");
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Players");
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GREEN + "Config Updated!");
 			ConfigHandler.writeConfig();
 		}
 		return 1;
 	}
 
 	private boolean isAllowed() {
+		if (getPlayer().getServer().isSinglePlayer())
+			return true;
+		ConfigHandler.readConfig();
 		if (getPlayer() == null)
 			return true;
+
 		for (String s : ConfigHandler.getAllowedConfigPlayers()) {
 			if (s.equalsIgnoreCase(getPlayer().getDisplayName().getString())) {
 				return true;
@@ -252,9 +259,9 @@ public final class WarpConfigCommand {
 		return false;
 	}
 
-	private int addConfigEditor(CommandSource source, Collection<ServerPlayerEntity> players) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int addConfigEditor(CommandSource source, Collection<ServerPlayerEntity> players) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
@@ -262,7 +269,8 @@ public final class WarpConfigCommand {
 		if (isAllowed()) {
 			String value = "";
 			int index = 0;
-			for (ServerPlayerEntity player : players) {
+			for (ServerPlayerEntity playerEntity : players) {
+				WarpPlayer player = new WarpPlayer(playerEntity);
 				if (index == (players.size() - 1))
 					value += player.getDisplayName().getString();
 				else
@@ -270,16 +278,16 @@ public final class WarpConfigCommand {
 				ConfigHandler.addAllowedConfigPlayers(player.getDisplayName().getString());
 				index++;
 			}
-			sendMessage(source.getEntity(), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Config Editors Players");
-			sendMessage(source.getEntity(), TextFormatting.GREEN + "Config Updated!");
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Config Editors Players");
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GREEN + "Config Updated!");
 			ConfigHandler.writeConfig();
 		}
 		return 1;
 	}
 
-	private int addAllowedPublicPlayers(CommandSource source, Collection<ServerPlayerEntity> players) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int addAllowedPublicPlayers(CommandSource source, Collection<ServerPlayerEntity> players) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
@@ -287,7 +295,8 @@ public final class WarpConfigCommand {
 		if (isAllowed()) {
 			String value = "";
 			int index = 0;
-			for (ServerPlayerEntity player : players) {
+			for (ServerPlayerEntity playerEntity : players) {
+				WarpPlayer player = new WarpPlayer(playerEntity);
 				if (index == (players.size() - 1))
 					value += player.getDisplayName().getString();
 				else
@@ -295,16 +304,16 @@ public final class WarpConfigCommand {
 				ConfigHandler.addAllowedPublicPlayer(player.getDisplayName().getString());
 				index++;
 			}
-			sendMessage(source.getEntity(), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Public Players");
-			sendMessage(source.getEntity(), TextFormatting.GREEN + "Config Updated!");
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Public Players");
+			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GREEN + "Config Updated!");
 			ConfigHandler.writeConfig();
 		}
 		return 1;
 	}
 
-	private int addAllowedPlayers(CommandSource source, Collection<ServerPlayerEntity> players) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int addAllowedPlayers(CommandSource source, Collection<ServerPlayerEntity> players) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
@@ -312,7 +321,8 @@ public final class WarpConfigCommand {
 		if (isAllowed()) {
 			String value = "";
 			int index = 0;
-			for (ServerPlayerEntity player : players) {
+			for (ServerPlayerEntity playerEntity : players) {
+				WarpPlayer player = new WarpPlayer(playerEntity);
 				if (index == (players.size() - 1))
 					value += player.getDisplayName().getString();
 				else
@@ -320,16 +330,20 @@ public final class WarpConfigCommand {
 				ConfigHandler.addAllowedPlayers(player.getDisplayName().getString());
 				index++;
 			}
-			sendMessage(source.getEntity(), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Players");
-			sendMessage(source.getEntity(), TextFormatting.GREEN + "Config Updated!");
+			try {
+				sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Players");
+				sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.GREEN + "Config Updated!");
+			} catch (CommandSyntaxException e) {
+				e.printStackTrace();
+			}
 			ConfigHandler.writeConfig();
 		}
 		return 1;
 	}
 
-	private int setPublicAllowed(CommandSource source, boolean bool) {
-		if (source.getEntity() instanceof PlayerEntity) {
-			PlayerEntity player1 = (PlayerEntity) source.getEntity();
+	private int setPublicAllowed(CommandSource source, boolean bool) throws CommandSyntaxException {
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			WarpPlayer player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			setPlayer(null);
@@ -349,11 +363,12 @@ public final class WarpConfigCommand {
 	 * @param source
 	 * @param bool
 	 * @return
+	 * @throws CommandSyntaxException
 	 */
-	private int setDebug(CommandSource source, boolean bool) {
-		PlayerEntity player1;
-		if (source.getEntity() instanceof PlayerEntity) {
-			player1 = (PlayerEntity) source.getEntity();
+	private int setDebug(CommandSource source, boolean bool) throws CommandSyntaxException {
+		WarpPlayer player1;
+		if (new WarpPlayer(source.asPlayer()) instanceof WarpPlayer) {
+			player1 = new WarpPlayer(source.asPlayer());
 			setPlayer(player1);
 		} else {
 			player1 = null;
@@ -369,12 +384,12 @@ public final class WarpConfigCommand {
 		return 1;
 	}
 
-	private void setPlayer(PlayerEntity player) {
+	private void setPlayer(WarpPlayer player) {
 		ConfigHandler.readConfig();
 		this.player = player;
 	}
 
-	private PlayerEntity getPlayer() {
+	private WarpPlayer getPlayer() {
 		return this.player;
 	}
 
@@ -384,7 +399,7 @@ public final class WarpConfigCommand {
 	 * @param player
 	 * @param message
 	 */
-	private void sendMessage(Entity player, Object message) {
+	private void sendMessage(WarpPlayer player, Object message) {
 		WarpMod.sendMessage(player, message);
 	}
 }

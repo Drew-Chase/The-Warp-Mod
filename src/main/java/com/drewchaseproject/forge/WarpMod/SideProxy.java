@@ -30,8 +30,9 @@ public class SideProxy {
 	}
 
 	private void serverStarting(FMLServerStartingEvent event) {
-		new WarpCommand().register(event.getCommandDispatcher());
-		new WarpConfigCommand().register(event.getCommandDispatcher());
+
+		new WarpCommand().register(event.getServer().getCommandManager().getDispatcher());
+		new WarpConfigCommand().register(event.getServer().getCommandManager().getDispatcher());
 	}
 
 	public static class Client extends SideProxy {
