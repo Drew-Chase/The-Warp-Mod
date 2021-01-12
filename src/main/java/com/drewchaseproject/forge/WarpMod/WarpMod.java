@@ -6,9 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.drewchaseproject.forge.WarpMod.config.ConfigHandler;
-import com.drewchaseproject.forge.WarpMod.util.WarpPlayer;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
@@ -110,8 +108,8 @@ public class WarpMod {
 	 * @param player
 	 * @param message
 	 */
-	public static void sendMessage(WarpPlayer player, Object message) {
-		player.getServerEntity().sendMessage(new StringTextComponent(message + ""), player.getServerEntity().getUniqueID());
+	public static void sendMessage(ServerPlayerEntity player, Object message) {
+		player.sendMessage(new StringTextComponent(message + ""), player.getUniqueID());
 	}
 
 }

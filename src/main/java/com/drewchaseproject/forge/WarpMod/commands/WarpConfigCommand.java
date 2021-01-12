@@ -178,10 +178,10 @@ public final class WarpConfigCommand {
 			for (ServerPlayerEntity entityPlayer : players) {
 				WarpPlayer player = new WarpPlayer(entityPlayer);
 				if (index == (players.size() - 1))
-					value += player.getDisplayName().getString();
+					value += player.getServerEntity().getDisplayName().getString();
 				else
-					value += player.getDisplayName().getString() + ", ";
-				ConfigHandler.removeAllowedConfigPlayers(player.getDisplayName().getString());
+					value += player.getServerEntity().getDisplayName().getString() + ", ";
+				ConfigHandler.removeAllowedConfigPlayers(player.getServerEntity().getDisplayName().getString());
 				index++;
 			}
 			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Removed " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Config Editors Players");
@@ -204,10 +204,10 @@ public final class WarpConfigCommand {
 			for (ServerPlayerEntity playerEntity : players) {
 				WarpPlayer player = new WarpPlayer(playerEntity);
 				if (index == (players.size() - 1))
-					value += player.getDisplayName().getString();
+					value += player.getServerEntity().getDisplayName().getString();
 				else
-					value += player.getDisplayName().getString() + ", ";
-				ConfigHandler.removeAllowedPublicPlayer(player.getDisplayName().getString());
+					value += player.getServerEntity().getDisplayName().getString() + ", ";
+				ConfigHandler.removeAllowedPublicPlayer(player.getServerEntity().getDisplayName().getString());
 				index++;
 			}
 			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Public Players");
@@ -230,10 +230,10 @@ public final class WarpConfigCommand {
 			for (ServerPlayerEntity playerEntity : players) {
 				WarpPlayer player = new WarpPlayer(playerEntity);
 				if (index == (players.size() - 1))
-					value += player.getDisplayName().getString();
+					value += player.getServerEntity().getDisplayName().getString();
 				else
-					value += player.getDisplayName().getString() + ", ";
-				ConfigHandler.removeAllowedPlayers(player.getDisplayName().getString());
+					value += player.getServerEntity().getDisplayName().getString() + ", ";
+				ConfigHandler.removeAllowedPlayers(player.getServerEntity().getDisplayName().getString());
 				index++;
 			}
 			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Players");
@@ -244,14 +244,14 @@ public final class WarpConfigCommand {
 	}
 
 	private boolean isAllowed() {
-		if (getPlayer().getServer().isSinglePlayer())
+		if (getPlayer().getServerEntity().getServer().isSinglePlayer())
 			return true;
 		ConfigHandler.readConfig();
 		if (getPlayer() == null)
 			return true;
 
 		for (String s : ConfigHandler.getAllowedConfigPlayers()) {
-			if (s.equalsIgnoreCase(getPlayer().getDisplayName().getString())) {
+			if (s.equalsIgnoreCase(getPlayer().getServerEntity().getDisplayName().getString())) {
 				return true;
 			}
 		}
@@ -272,10 +272,10 @@ public final class WarpConfigCommand {
 			for (ServerPlayerEntity playerEntity : players) {
 				WarpPlayer player = new WarpPlayer(playerEntity);
 				if (index == (players.size() - 1))
-					value += player.getDisplayName().getString();
+					value += player.getServerEntity().getDisplayName().getString();
 				else
-					value += player.getDisplayName().getString() + ", ";
-				ConfigHandler.addAllowedConfigPlayers(player.getDisplayName().getString());
+					value += player.getServerEntity().getDisplayName().getString() + ", ";
+				ConfigHandler.addAllowedConfigPlayers(player.getServerEntity().getDisplayName().getString());
 				index++;
 			}
 			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Config Editors Players");
@@ -298,10 +298,10 @@ public final class WarpConfigCommand {
 			for (ServerPlayerEntity playerEntity : players) {
 				WarpPlayer player = new WarpPlayer(playerEntity);
 				if (index == (players.size() - 1))
-					value += player.getDisplayName().getString();
+					value += player.getServerEntity().getDisplayName().getString();
 				else
-					value += player.getDisplayName().getString() + ", ";
-				ConfigHandler.addAllowedPublicPlayer(player.getDisplayName().getString());
+					value += player.getServerEntity().getDisplayName().getString() + ", ";
+				ConfigHandler.addAllowedPublicPlayer(player.getServerEntity().getDisplayName().getString());
 				index++;
 			}
 			sendMessage(new WarpPlayer(source.asPlayer()), TextFormatting.AQUA + "Added " + TextFormatting.GOLD + value + TextFormatting.AQUA + " to Allowed Public Players");
@@ -324,10 +324,10 @@ public final class WarpConfigCommand {
 			for (ServerPlayerEntity playerEntity : players) {
 				WarpPlayer player = new WarpPlayer(playerEntity);
 				if (index == (players.size() - 1))
-					value += player.getDisplayName().getString();
+					value += player.getServerEntity().getDisplayName().getString();
 				else
-					value += player.getDisplayName().getString() + ", ";
-				ConfigHandler.addAllowedPlayers(player.getDisplayName().getString());
+					value += player.getServerEntity().getDisplayName().getString() + ", ";
+				ConfigHandler.addAllowedPlayers(player.getServerEntity().getDisplayName().getString());
 				index++;
 			}
 			try {
@@ -400,6 +400,6 @@ public final class WarpConfigCommand {
 	 * @param message
 	 */
 	private void sendMessage(WarpPlayer player, Object message) {
-		WarpMod.sendMessage(player, message);
+		WarpMod.sendMessage(player.getServerEntity(), message);
 	}
 }

@@ -31,13 +31,10 @@ import net.minecraft.command.Commands;
 import net.minecraft.command.ISuggestionProvider;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.DimensionType;
-import net.minecraft.world.storage.SaveFormat;
 
 /**
  * Main Warp Command
@@ -55,10 +52,10 @@ public final class WarpCommand {
 	public String FileName = "warps.conf";
 	public String FileLocation = "config/Warps/";
 	public WarpCommand instance;
-	private WarpPlayer player;
+	private ServerPlayerEntity player;
 	private String[] subcommands = new String[] { "set", "random", "map", "list", "help", "reload", "me", "remove", "rename", "invite", "accept", "spawn" };
 	private final ArrayList<String> remove_text = new ArrayList<String>();
-	private final SuggestionProvider<CommandSource> WARP_SUGGESTIONS = (context, builder) -> ISuggestionProvider.suggest(importAllWarps(new WarpPlayer(context.getSource().asPlayer())), builder), COMMAND_SUGGESTIONS = (context, builder) -> ISuggestionProvider.suggest(subcommands, builder);
+	private final SuggestionProvider<CommandSource> WARP_SUGGESTIONS = (context, builder) -> ISuggestionProvider.suggest(importAllWarps(context.getSource().asPlayer()), builder), COMMAND_SUGGESTIONS = (context, builder) -> ISuggestionProvider.suggest(subcommands, builder);
 	private SuggestionProvider<CommandSource> WARP_REMOVE_SUGGESTIONS;
 
 	/**
@@ -116,11 +113,11 @@ public final class WarpCommand {
 				.then(
 						Commands.argument("player", EntityArgument.player())
 								.then(Commands.literal("me")
-										.executes(context -> warpToMe(context.getSource(), (WarpPlayer) EntityArgument.getPlayer(context, "player")))))
+										.executes(context -> warpToMe(context.getSource(), (ServerPlayerEntity) EntityArgument.getPlayer(context, "player")))))
 				.then(
 						Commands.literal("me")
 								.then(Commands.argument("player", EntityArgument.player())
-										.executes(context -> warpTo(context.getSource(), (WarpPlayer) EntityArgument.getPlayer(context, "player")))))
+										.executes(context -> warpTo(context.getSource(), (ServerPlayerEntity) EntityArgument.getPlayer(context, "player")))))
 				.then(
 						Commands.literal("remove")
 								.then(Commands.argument("Warp Name", StringArgumentType.greedyString())
@@ -137,16 +134,16 @@ public final class WarpCommand {
 								.then(Commands.argument("Warp Name", StringArgumentType.word())
 										.suggests(WARP_SUGGESTIONS)
 										.then(Commands.argument("player", EntityArgument.player())
-												.executes(context -> invite(context.getSource(), StringArgumentType.getString(context, "Warp Name"), (WarpPlayer) EntityArgument.getPlayer(context, "player"))))))
+												.executes(context -> invite(context.getSource(), StringArgumentType.getString(context, "Warp Name"), (ServerPlayerEntity) EntityArgument.getPlayer(context, "player"))))))
 
 		);
 
 	}
 
 	private int test(CommandSource source) {
-		WarpPlayer player = null;
+		ServerPlayerEntity player = null;
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			return 0;
@@ -205,10 +202,10 @@ public final class WarpCommand {
 	}
 
 	private int setPublicWarp(CommandSource source, String name) {
-		WarpPlayer player;
+		ServerPlayerEntity player;
 		name = name.toLowerCase();
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			player = null;
 		}
@@ -225,13 +222,13 @@ public final class WarpCommand {
 					BlockPos pos = new BlockPos(x, y, z);
 					boolean added = false;
 					if (public_warps.getWarp(name) != null) {
-						added = public_warps.addWarp(new Warp(name, pos, player, player.getServerWorld(), player.getDimensionResourceLocation()));
+						added = public_warps.addWarp(new Warp(name, pos, player, player.getServerWorld(), new WarpPlayer(player).getDimensionResourceLocation()));
 						sendMessage(player, TextFormatting.GOLD + "Public Warp Overwritten: " + TextFormatting.GREEN + name);
 					} else {
-						added = public_warps.addWarp(new Warp(name, pos, player, player.getServerWorld(), player.getDimensionResourceLocation()));
+						added = public_warps.addWarp(new Warp(name, pos, player, player.getServerWorld(), new WarpPlayer(player).getDimensionResourceLocation()));
 						sendMessage(player, TextFormatting.GOLD + "Public Warp Created: " + TextFormatting.GREEN + name);
 					}
-					added = public_warps.addWarp(new Warp(name, pos, player, player.getServerWorld(), player.getDimensionResourceLocation()));
+					added = public_warps.addWarp(new Warp(name, pos, player, player.getServerWorld(), new WarpPlayer(player).getDimensionResourceLocation()));
 					if (!added) {
 						sendMessage(player, TextFormatting.RED + "Could not add Warp " + name);
 					}
@@ -259,10 +256,10 @@ public final class WarpCommand {
 	 * @return
 	 */
 	private int setWarp(CommandSource source, String name) {
-		WarpPlayer player = null;
+		ServerPlayerEntity player = null;
 		name = name.toLowerCase();
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			player = null;
 		} catch (Exception e) {
@@ -295,7 +292,7 @@ public final class WarpCommand {
 						boolean added = false;
 						if (warps.getWarp(name) != null && warps.getWarp(name).getPlayer().equals(player)) {
 							try {
-								added = warps.addWarp(new Warp(name, pos, player, yaw, pitch, player.getServerWorld(), player.getDimensionResourceLocation()));
+								added = warps.addWarp(new Warp(name, pos, player, yaw, pitch, player.getServerWorld(), new WarpPlayer(player).getDimensionResourceLocation()));
 								sendMessage(player, TextFormatting.GOLD + "Warp Overwritten: " + TextFormatting.GREEN + name);
 							} catch (NullPointerException e) {
 								if (name == null)
@@ -307,7 +304,7 @@ public final class WarpCommand {
 							}
 						} else if (warps.getWarp(name) == null) {
 							try {
-								added = warps.addWarp(new Warp(name, pos, player, yaw, pitch, player.getServerWorld(), player.getDimensionResourceLocation()));
+								added = warps.addWarp(new Warp(name, pos, player, yaw, pitch, player.getServerWorld(), new WarpPlayer(player).getDimensionResourceLocation()));
 								sendMessage(player, TextFormatting.GOLD + "Warp Created: " + TextFormatting.GREEN + name);
 							} catch (NullPointerException e) {
 								if (name == null)
@@ -318,7 +315,7 @@ public final class WarpCommand {
 
 							}
 						}
-						added = warps.addWarp(new Warp(name, pos, player, yaw, pitch, player.getServerWorld(), player.getDimensionResourceLocation()));
+						added = warps.addWarp(new Warp(name, pos, player, yaw, pitch, player.getServerWorld(), new WarpPlayer(player).getDimensionResourceLocation()));
 						if (!added)
 							sendMessage(player, TextFormatting.RED + "Could not add Warp " + name);
 						exportAllWarps(player);
@@ -344,7 +341,7 @@ public final class WarpCommand {
 	 * @param player
 	 * @return
 	 */
-	public List<String> importAllWarps(WarpPlayer player) {
+	public List<String> importAllWarps(ServerPlayerEntity player) {
 		setPlayer(player);
 		List<String> name = new ArrayList<String>();
 		name.addAll(importWarps(player, 0));
@@ -359,7 +356,7 @@ public final class WarpCommand {
 		return name;
 	}
 
-	public void exportAllWarps(WarpPlayer player) {
+	public void exportAllWarps(ServerPlayerEntity player) {
 		setPlayer(player);
 		WarpMod.log(LogType.Debug, public_warps.toString());
 		export(player);
@@ -370,9 +367,9 @@ public final class WarpCommand {
 	}
 
 	public int warpTo(CommandSource source) {
-		WarpPlayer player = null;
+		ServerPlayerEntity player = null;
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (Exception e) {
 			WarpMod.log(LogType.Error, "ERROR: " + e.getMessage() + "\n" + e.getStackTrace().toString());
 			return 0;
@@ -380,11 +377,11 @@ public final class WarpCommand {
 		if (player != null) {
 			if (!isRemote(player)) {
 				setPlayer(player);
-				double x = (double) player.getWorldSpawn().getX(), y = (double) player.getWorldSpawn().getY(), z = (double) player.getWorldSpawn().getZ();
+				double x = (double) new WarpPlayer(player).getWorldSpawn().getX(), y = (double) new WarpPlayer(player).getWorldSpawn().getY(), z = (double) new WarpPlayer(player).getWorldSpawn().getZ();
 				BlockPos oldPos = player.getPosition();
 				float yaw = player.rotationYaw;
 				float pitch = player.rotationPitch;
-				Teleport.teleportToDimension(player, x, y, z, yaw, pitch, player.getDimensionResourceLocation());
+				Teleport.teleportToDimension(player, x, y, z, yaw, pitch, new WarpPlayer(player).getDimensionResourceLocation());
 				sendMessage(player, TextFormatting.GOLD + "Warped to: " + TextFormatting.GREEN + "Spawn");
 				back(oldPos, yaw, pitch, player);
 			}
@@ -401,10 +398,10 @@ public final class WarpCommand {
 	 * @return
 	 */
 	public int warpTo(CommandSource source, String name) {
-		WarpPlayer playerIn;
+		ServerPlayerEntity playerIn;
 		name = name.toLowerCase();
 		try {
-			playerIn = new WarpPlayer(source.asPlayer());
+			playerIn = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			WarpMod.log(LogType.Error, e.getStackTrace().toString());
 			playerIn = null;
@@ -413,7 +410,7 @@ public final class WarpCommand {
 		if (playerIn != null) {
 			if (!isRemote(playerIn)) {
 				try {
-					WarpPlayer player = playerIn;
+					ServerPlayerEntity player = playerIn;
 					setPlayer(player);
 					importAllWarps(player);
 					if (warps.getWarp(name) != null && isAllowed(false)) {
@@ -455,10 +452,10 @@ public final class WarpCommand {
 	 * @param playerTo
 	 * @return
 	 */
-	public int warpTo(CommandSource source, WarpPlayer playerTo) {
-		WarpPlayer playerIn;
+	public int warpTo(CommandSource source, ServerPlayerEntity playerTo) {
+		ServerPlayerEntity playerIn;
 		try {
-			playerIn = new WarpPlayer(source.asPlayer());
+			playerIn = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			playerIn = null;
@@ -466,7 +463,7 @@ public final class WarpCommand {
 		}
 
 		int i = 0;
-		for (WarpPlayer p : getOnlinePlayers(source)) {
+		for (ServerPlayerEntity p : getOnlinePlayers(source)) {
 			if (p.getDisplayName().getString().equalsIgnoreCase(player.getDisplayName().getString()))
 				continue;
 			else
@@ -480,17 +477,17 @@ public final class WarpCommand {
 
 		if (playerIn != null) {
 			if (!isRemote(playerIn)) {
-				WarpPlayer player = playerIn;
+				ServerPlayerEntity player = playerIn;
 				setPlayer(player);
 				if (isAllowed(false, "You do not have permissions to use the warp mod")) {
 					double x = playerTo.getPosX(), y = playerTo.getPosY(), z = playerTo.getPosZ();
-					DimensionType dimension = player.getDimension();
+					DimensionType dimension = new WarpPlayer(player).getDimension();
 					BlockPos oldPos = new BlockPos(player.getPosX(), player.getPosY(), player.getPosZ());
-					DimensionType oldDim = player.getDimension();
+					DimensionType oldDim = new WarpPlayer(player).getDimension();
 					float yaw = playerTo.prevCameraYaw;
 					float pitch = playerTo.prevRotationPitch;
 					String name = playerTo.getDisplayName().getString();
-					Teleport.teleportToDimension(player, x, y, z, yaw, pitch, playerTo.getDimensionResourceLocation());
+					Teleport.teleportToDimension(player, x, y, z, yaw, pitch, new WarpPlayer(playerTo).getDimensionResourceLocation());
 					sendMessage(player, TextFormatting.GOLD + "Warped to: " + TextFormatting.GREEN + name);
 					back(oldPos, playerIn.cameraYaw, playerIn.prevRotationPitch, playerIn);
 				}
@@ -500,17 +497,17 @@ public final class WarpCommand {
 		return 1;
 	}
 
-	public int warpToMe(CommandSource source, WarpPlayer playerTo) {
-		WarpPlayer player;
+	public int warpToMe(CommandSource source, ServerPlayerEntity playerTo) {
+		ServerPlayerEntity player;
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			player = null;
 			return 0;
 		}
 		int i = 0;
-		for (WarpPlayer p : getOnlinePlayers(source)) {
+		for (ServerPlayerEntity p : getOnlinePlayers(source)) {
 			if (p.getDisplayName().getString().equalsIgnoreCase(player.getDisplayName().getString()))
 				continue;
 			else
@@ -526,12 +523,12 @@ public final class WarpCommand {
 			setPlayer(player);
 			if (isAllowed(false, "You do not have permissions to use the warp mod")) {
 				double x = (double) player.getPosX(), y = (double) player.getPosY(), z = (double) player.getPosZ();
-				DimensionType dimension = player.getDimension();
+				DimensionType dimension = new WarpPlayer(player).getDimension();
 				BlockPos oldPos = new BlockPos(playerTo.getPosX(), playerTo.getPosY(), playerTo.getPosZ());
-				DimensionType oldDim = playerTo.getDimension();
+				DimensionType oldDim = new WarpPlayer(playerTo).getDimension();
 				float yaw = player.prevCameraYaw, pitch = player.prevRotationPitch;
 				String name = player.getDisplayName().getString();
-				Teleport.teleportToDimension(playerTo, x, y, z, yaw, pitch, playerTo.getDimensionResourceLocation());
+				Teleport.teleportToDimension(playerTo, x, y, z, yaw, pitch, new WarpPlayer(playerTo).getDimensionResourceLocation());
 				back(oldPos, playerTo.prevCameraYaw, playerTo.prevRotationPitch, playerTo);
 				sendMessage(playerTo, TextFormatting.RED + "You are being forced into a locked room with " + TextFormatting.LIGHT_PURPLE + name);
 			}
@@ -550,13 +547,13 @@ public final class WarpCommand {
 	 * @param player
 	 * @author Drew Chase
 	 */
-	public void back(BlockPos pos, float yaw, float pitch, WarpPlayer player) {
+	public void back(BlockPos pos, float yaw, float pitch, ServerPlayerEntity player) {
 		if (!isRemote(player)) {
 			setPlayer(player);
 			if (isAllowed(false, "You do not have permissions to use the warp mod")) {
 				try {
 					importAllWarps(player);
-					warps.addWarp(new Warp("back", pos, player, yaw, pitch, player.getServerWorld(), player.getDimensionResourceLocation()));
+					warps.addWarp(new Warp("back", pos, player, yaw, pitch, player.getServerWorld(), new WarpPlayer(player).getDimensionResourceLocation()));
 					sendMessage(player, TextFormatting.GREEN + "Back Warped Saved: type " + TextFormatting.GOLD + "\"/warp back\"" + TextFormatting.GREEN + " to go back");
 					exportAllWarps(player);
 				} catch (Exception e) {
@@ -572,7 +569,7 @@ public final class WarpCommand {
 	 * @param player
 	 * @return
 	 */
-	private List<String> importWarps(WarpPlayer player, int count) {
+	private List<String> importWarps(ServerPlayerEntity player, int count) {
 		List<String> warps = new ArrayList<String>();
 
 		if (!isRemote(player)) {
@@ -747,13 +744,13 @@ public final class WarpCommand {
 	private int listWarps(CommandSource source, String playerName) {
 		try {
 			List<String> names = new ArrayList<String>();
-			WarpPlayer player = null;
-			for (WarpPlayer playerList : warps.getPlayers()) {
+			ServerPlayerEntity player = null;
+			for (ServerPlayerEntity playerList : warps.getPlayers()) {
 				if (playerList.getDisplayName().equals(playerName))
 					player = playerList;
 			}
 			// Is Console
-			if (!(source.getEntity() instanceof WarpPlayer) && player != null) {
+			if (!(source.getEntity() instanceof ServerPlayerEntity) && player != null) {
 				importAllWarps(player);
 				if (warps.getWarps().isEmpty() && public_warps.getWarps().isEmpty()) {
 					sendMessage(player, TextFormatting.RED + "No Warps");
@@ -790,10 +787,10 @@ public final class WarpCommand {
 	 * @return
 	 */
 	private int listWarps(CommandSource source) {
-		WarpPlayer player;
+		ServerPlayerEntity player;
 		List<String> names = new ArrayList<String>();
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (Exception e) {
 			player = null;
 		}
@@ -823,10 +820,10 @@ public final class WarpCommand {
 	}
 
 	private int listPublicWarps(CommandSource source) {
-		WarpPlayer player;
+		ServerPlayerEntity player;
 		List<String> names = new ArrayList<String>();
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			player = null;
 		}
@@ -860,14 +857,14 @@ public final class WarpCommand {
 	public int mapWarps(CommandSource source, String playerName) {
 		List<String> names = new ArrayList<String>();
 
-		WarpPlayer player = null;
-		for (WarpPlayer players : warps.getPlayers()) {
+		ServerPlayerEntity player = null;
+		for (ServerPlayerEntity players : warps.getPlayers()) {
 			if (players.getDisplayName().equals(playerName))
 				player = players;
 		}
 
 		// Is Console
-		if (!(source.getEntity() instanceof WarpPlayer) && player != null) {
+		if (!(source.getEntity() instanceof ServerPlayerEntity) && player != null) {
 
 			String value = "";
 			try {
@@ -915,10 +912,10 @@ public final class WarpCommand {
 	 * @return
 	 */
 	public int mapWarps(CommandSource source) {
-		WarpPlayer player;
+		ServerPlayerEntity player;
 		List<String> names = new ArrayList<String>();
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			player = null;
@@ -973,10 +970,10 @@ public final class WarpCommand {
 	}
 
 	public int mapPublicWarps(CommandSource source) {
-		WarpPlayer player;
+		ServerPlayerEntity player;
 		List<String> names = new ArrayList<String>();
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			player = null;
@@ -1027,11 +1024,11 @@ public final class WarpCommand {
 	 * @param source
 	 * @return
 	 */
-	private List<WarpPlayer> getOnlinePlayers(CommandSource source) {
-		List<WarpPlayer> players = new ArrayList<WarpPlayer>();
+	private List<ServerPlayerEntity> getOnlinePlayers(CommandSource source) {
+		List<ServerPlayerEntity> players = new ArrayList<ServerPlayerEntity>();
 		try {
 			for (ServerPlayerEntity p : source.asPlayer().getServerWorld().getPlayers()) {
-				players.add(new WarpPlayer(p));
+				players.add(p);
 			}
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
@@ -1040,9 +1037,9 @@ public final class WarpCommand {
 	}
 
 	public int remove(CommandSource source, String name) {
-		WarpPlayer player;
+		ServerPlayerEntity player;
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			player = null;
@@ -1100,9 +1097,9 @@ public final class WarpCommand {
 	}
 
 	public int removePublic(CommandSource source, String name) {
-		WarpPlayer player;
+		ServerPlayerEntity player;
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			player = null;
@@ -1163,9 +1160,9 @@ public final class WarpCommand {
 	 * @param newName
 	 */
 	public int rename(CommandSource source, String oldName, String newName) {
-		WarpPlayer playerIn;
+		ServerPlayerEntity playerIn;
 		try {
-			playerIn = new WarpPlayer(source.asPlayer());
+			playerIn = source.asPlayer();
 		} catch (CommandSyntaxException e1) {
 			e1.printStackTrace();
 			playerIn = null;
@@ -1197,9 +1194,9 @@ public final class WarpCommand {
 	}
 
 	public int renamePublic(CommandSource source, String oldName, String newName) {
-		WarpPlayer playerIn;
+		ServerPlayerEntity playerIn;
 		try {
-			playerIn = new WarpPlayer(source.asPlayer());
+			playerIn = source.asPlayer();
 		} catch (CommandSyntaxException e1) {
 			e1.printStackTrace();
 			playerIn = null;
@@ -1253,14 +1250,14 @@ public final class WarpCommand {
 		s.add("/warp-config add <config-handler> <player> ~ Adds a Player to a permission group");
 		s.add("/warp-config set <config-handler> <true/false> ~ Sets the value of the selected config");
 		s.add("/warp-config get <config-handler> ~ Gets the current value of selected config");
-		WarpPlayer player;
+		ServerPlayerEntity player;
 		try {
-			player = (WarpPlayer) (WarpPlayer) source.asPlayer();
+			player = (ServerPlayerEntity) (ServerPlayerEntity) source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			player = null;
 		}
-		if (player instanceof WarpPlayer)
+		if (player instanceof ServerPlayerEntity)
 			setPlayer(player);
 		else
 			setPlayer(null);
@@ -1283,14 +1280,14 @@ public final class WarpCommand {
 	 * @author Drew Chase
 	 */
 	public int warpRandom(CommandSource source, int range) {
-		WarpPlayer player;
+		ServerPlayerEntity player;
 		try {
-			player = new WarpPlayer(source.asPlayer());
+			player = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			player = null;
 		}
-		if (player instanceof WarpPlayer) {
+		if (player instanceof ServerPlayerEntity) {
 			setPlayer(player);
 		} else {
 			player = null;
@@ -1310,7 +1307,7 @@ public final class WarpCommand {
 					// Makes sure that the player is on solid ground
 
 					while (player.world.getBlockState(pos).getBlock().equals(Blocks.AIR) || player.world.getBlockState(pos).getBlock().equals(Blocks.VOID_AIR)) {
-						if (y <= 10) {
+						if (y <= 0) {
 							sendMessage(player, TextFormatting.RED + "There is no safe place to land");
 							return 1;
 						}
@@ -1329,7 +1326,7 @@ public final class WarpCommand {
 					back(new BlockPos(player.getPosX(), player.getPosY(), player.getPosZ()), player.cameraYaw, player.prevRotationPitch, player);
 					float yaw = player.cameraYaw;
 					float pitch = player.prevRotationPitch;
-					Teleport.teleportToDimension(player, x, y, z, yaw, pitch, player.getDimensionResourceLocation());
+					Teleport.teleportToDimension(player, x, y, z, yaw, pitch, new WarpPlayer(player).getDimensionResourceLocation());
 					sendMessage(player, TextFormatting.AQUA + "Warping " + var + " blocks away!");
 				}
 			} else
@@ -1346,10 +1343,10 @@ public final class WarpCommand {
 	 * @param name
 	 * @param playerIn
 	 */
-	public int invite(CommandSource source, String name, WarpPlayer playerIn) {
-		WarpPlayer playerOut;
+	public int invite(CommandSource source, String name, ServerPlayerEntity playerIn) {
+		ServerPlayerEntity playerOut;
 		try {
-			playerOut = new WarpPlayer(source.asPlayer());
+			playerOut = source.asPlayer();
 		} catch (CommandSyntaxException e) {
 			e.printStackTrace();
 			playerOut = null;
@@ -1357,7 +1354,7 @@ public final class WarpCommand {
 		}
 
 		int i = 0;
-		for (WarpPlayer p : getOnlinePlayers(source)) {
+		for (ServerPlayerEntity p : getOnlinePlayers(source)) {
 			if (p.getDisplayName().getString().equalsIgnoreCase(player.getDisplayName().getString()))
 				continue;
 			else
@@ -1403,7 +1400,7 @@ public final class WarpCommand {
 	 * @param player
 	 * @return
 	 */
-	public boolean isRemote(WarpPlayer player) {
+	public boolean isRemote(ServerPlayerEntity player) {
 		try {
 			return player.getEntityWorld().isRemote;
 		} catch (NullPointerException e) {
@@ -1416,7 +1413,7 @@ public final class WarpCommand {
 	 * 
 	 * @param player
 	 */
-	public void export(WarpPlayer player) {
+	public void export(ServerPlayerEntity player) {
 		if (!isRemote(player)) {
 			setPlayer(player);
 			if (isAllowed(false)) {
@@ -1524,12 +1521,12 @@ public final class WarpCommand {
 
 	}
 
-	public void setPlayer(WarpPlayer player) {
+	public void setPlayer(ServerPlayerEntity player) {
 		ConfigHandler.readConfig();
 		this.player = player;
 	}
 
-	public WarpPlayer getPlayer() {
+	public ServerPlayerEntity getPlayer() {
 		return this.player;
 	}
 
@@ -1539,7 +1536,7 @@ public final class WarpCommand {
 	 * @param player
 	 * @param message
 	 */
-	private void sendMessage(WarpPlayer player, Object message) {
+	private void sendMessage(ServerPlayerEntity player, Object message) {
 		WarpMod.sendMessage(player, message);
 	}
 

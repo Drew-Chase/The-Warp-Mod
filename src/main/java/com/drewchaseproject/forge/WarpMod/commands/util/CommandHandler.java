@@ -13,6 +13,7 @@ import com.drewchaseproject.forge.WarpMod.commands.WarpCommand;
 import com.drewchaseproject.forge.WarpMod.util.WarpPlayer;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -57,9 +58,9 @@ public class CommandHandler {
 		@SubscribeEvent
 		public void onLivingDeath(LivingDeathEvent event) {
 			Entity e = event.getEntityLiving();
-			if (e instanceof WarpPlayer) {
+			if (e instanceof ServerPlayerEntity) {
 				try {
-					WarpPlayer player = (WarpPlayer) e;
+					ServerPlayerEntity player = (ServerPlayerEntity) e;
 					WarpCommand wc = new WarpCommand();
 					wc.setPlayer(player);
 					BlockPos pos = new BlockPos(player.getPosX(), player.getPosY(), player.getPosZ());

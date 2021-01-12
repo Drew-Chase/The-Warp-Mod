@@ -2,6 +2,7 @@ package com.drewchaseproject.forge.WarpMod.Objects;
 
 import com.drewchaseproject.forge.WarpMod.util.WarpPlayer;
 
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;
@@ -17,7 +18,7 @@ public class Warp {
 	private BlockPos pos;
 	private float yaw, pitch;
 	private String name;
-	private WarpPlayer player;
+	private ServerPlayerEntity player;
 	private ServerWorld world;
 	private ResourceLocation location;
 
@@ -31,7 +32,7 @@ public class Warp {
 	 * @param yaw
 	 * @param pitch
 	 */
-	public Warp(String name, BlockPos pos, WarpPlayer player, float yaw, float pitch, ServerWorld world, ResourceLocation location) {
+	public Warp(String name, BlockPos pos, ServerPlayerEntity player, float yaw, float pitch, ServerWorld world, ResourceLocation location) {
 		setPos(pos);
 		setName(name);
 		setPlayer(player);
@@ -41,10 +42,10 @@ public class Warp {
 		setDimensionResourceLocation(location);
 	}
 
-	public Warp(String name, BlockPos pos, WarpPlayer player, ServerWorld world, ResourceLocation location) {
+	public Warp(String name, BlockPos pos, ServerPlayerEntity player2, ServerWorld world, ResourceLocation location) {
 		setPos(pos);
 		setName(name);
-		setPlayer(player);
+		setPlayer(player2);
 		setYaw(0f);
 		setPitch(0f);
 		setServerWorld(world);
@@ -147,15 +148,15 @@ public class Warp {
 	/**
 	 * @return the player
 	 */
-	public WarpPlayer getPlayer() {
+	public ServerPlayerEntity getPlayer() {
 		return player;
 	}
 
 	/**
-	 * @param player the player to set
+	 * @param player2 the player to set
 	 */
-	public void setPlayer(WarpPlayer player) {
-		this.player = player;
+	public void setPlayer(ServerPlayerEntity player2) {
+		this.player = player2;
 	}
 
 	@Override
