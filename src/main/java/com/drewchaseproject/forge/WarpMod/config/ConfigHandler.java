@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.drewchaseproject.forge.WarpMod.WarpMod;
@@ -43,7 +44,8 @@ public class ConfigHandler {
 			WarpMod.log(LogType.Error, "Couldn't Create Default Warp Settings File");
 			e.printStackTrace();
 		}
-
+		if (!new File(getFolderName() + getFileName()).exists())
+			cfg = defaultConfig();
 		try {
 			bw = new BufferedWriter(new FileWriter(getFolderName() + getFileName(), false));
 			for (String s : cfg) {
@@ -61,8 +63,6 @@ public class ConfigHandler {
 				}
 			}
 		}
-
-//		readConfig();
 
 	}
 
@@ -98,11 +98,15 @@ public class ConfigHandler {
 		l.add("\n#Sets players that are allowed to create public warps.\n#Ex: (allowed-players-public:[\"LittleBilly101\", \"LittleBilly102\"])\n#You can also use * to signify all players are allowed\n#Ex (allowed-players:[\"*\"])\n");
 
 		value = "";
-		for (String s : getAllowedPublicPlayers()) {
-			if (getAllowedPublicPlayers().indexOf(s) == (getAllowedPublicPlayers().size() - 1))
-				value += "\"" + s + "\"";
-			else
-				value += "\"" + s + "\",";
+		if (getAllowedPublicPlayers().contains("*")) {
+			value = "\"*\"";
+		} else {
+			for (String s : getAllowedPublicPlayers()) {
+				if (getAllowedPublicPlayers().indexOf(s) == (getAllowedPublicPlayers().size() - 1))
+					value += "\"" + s + "\"";
+				else
+					value += "\"" + s + "\",";
+			}
 		}
 		l.add("\nallowed-players-public:[" + value + "]\n\n");
 		l.add("#Sets if the Mod verbosly states all of its moves\n");
@@ -244,11 +248,7 @@ public class ConfigHandler {
 	}
 
 	public static boolean areAllPlayersAllowedPublic() {
-		for (String s : getAllowedPublicPlayers()) {
-			if (s.equalsIgnoreCase("*"))
-				return true;
-		}
-		return false;
+		return getAllowedPublicPlayers().contains("*");
 	}
 
 	public static void addAllowedPublicPlayer(String value) {
@@ -257,11 +257,11 @@ public class ConfigHandler {
 	}
 
 	public static List<String> getAllowedPublicPlayers() {
-		return public_players;
+		return public_players.contains("*") ? Arrays.asList(new String[] { "*" }) : public_players;
 	}
 
 	public static List<String> getAllowedPlayers() {
-		return all_players;
+		return all_players.contains("*") ? Arrays.asList(new String[] { "*" }) : all_players;
 	}
 
 	public static List<String> getAllowedConfigPlayers() {
@@ -281,11 +281,7 @@ public class ConfigHandler {
 	}
 
 	public static boolean areAllPlayersAllowed() {
-		for (String s : getAllowedPlayers()) {
-			if (s.equalsIgnoreCase("*"))
-				return true;
-		}
-		return false;
+		return getAllowedPlayers().contains("*");
 	}
 
 	public static String getFolderName() {

@@ -51,6 +51,17 @@ public class Warp {
 		setServerWorld(world);
 		setDimensionResourceLocation(location);
 	}
+	
+	public Warp(String name,  ServerPlayerEntity player) {
+		setPos(player.getPosition());
+		setName(name);
+		setPlayer(player);
+		setYaw(player.getPitchYaw().x);
+		setPitch(player.getPitchYaw().y);
+		setServerWorld(player.getServerWorld());
+		setDimensionResourceLocation(new WarpPlayer(player).getDimensionResourceLocation());
+	}
+	
 
 	/**
 	 * @return the pos

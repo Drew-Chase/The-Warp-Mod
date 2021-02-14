@@ -56,7 +56,7 @@ A Mod that has taken on a life of its own from its predecessor!
 [[dependencies.warp_mod]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16.4,1.17)"
+    versionRange="[1.16.4,1.16.5,1.17)"
     ordering="NONE"
     side="BOTH"
     

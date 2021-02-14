@@ -64,8 +64,9 @@ public class CommandHandler {
 					WarpCommand wc = new WarpCommand();
 					wc.setPlayer(player);
 					BlockPos pos = new BlockPos(player.getPosX(), player.getPosY(), player.getPosZ());
-					float yaw = player.prevRotationYaw, pitch = player.prevRotationPitch;
-					wc.back(pos, yaw, pitch, player);
+					float pitch = player.getPitchYaw().y;
+					float yaw = player.getPitchYaw().x;
+					wc.back(pos, yaw, pitch, new WarpPlayer(player).getDimensionResourceLocation(), player);
 				} catch (NullPointerException ex) {
 					ex.printStackTrace();
 					return;

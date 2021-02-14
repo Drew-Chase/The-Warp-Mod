@@ -96,15 +96,16 @@ public class Warps {
 	 */
 	public boolean addWarp(Warp w) {
 		for (String s : subcommands)
-			if (w.getName().equalsIgnoreCase(s)) {
+			if (w.getName().equalsIgnoreCase(s))
 				return false;
-			}
+
 		for (Warp warp : getWarps()) {
 			if (warp.getName().equals(w.getName())) {
 				warp.setPos(w.getPos());
 				warp.setPlayer(w.getPlayer());
-				warp.setPitch(warp.getPitch());
+				warp.setPitch(w.getPitch());
 				warp.setYaw(w.getYaw());
+				warp.setDimensionResourceLocation(w.getDimensionResourceLocation());
 				return true;
 			}
 		}
