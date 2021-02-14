@@ -1,10 +1,12 @@
 # eclipse
+eclipse
 bin
 *.launch
-.settings
-.metadata
-.classpath
-.project
+*.settings
+*.metadata
+*.classpath
+*.project
+
 
 # idea
 out
@@ -18,8 +20,7 @@ build
 .gradle
 
 # other
-eclipse
 run
-
+*.txt
 # Files from Forge MDK
 forge*changelog.txt
