@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "warpmod",
+  "version": "${version}",
+  "name": "Warp Mod",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All Rights Reserved",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["chase.minecraft.architectury.warpmod.fabric.WarpModFabric"]
+  },
+  "mixins": [
+    "warpmod.mixins.json",
+    "warpmod-common.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.18",
+    "minecraft": ">=1.19.4"
+  }
+}
