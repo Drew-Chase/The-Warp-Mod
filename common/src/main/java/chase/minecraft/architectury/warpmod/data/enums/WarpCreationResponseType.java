@@ -4,5 +4,6 @@ public enum WarpCreationResponseType {
     FailureDueToDuplicate,
     FailureDueToInvalidPermissions,
     FalureDueToNameKeywordMatch,
-    Success
+    Success,
+    Overwritten
 }
