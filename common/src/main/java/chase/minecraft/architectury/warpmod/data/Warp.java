@@ -1,13 +1,22 @@
 package chase.minecraft.architectury.warpmod.data;
 
 import chase.minecraft.architectury.warpmod.WarpMod;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.commands.SpreadPlayersCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.Vec2;
 
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * Warp object holds name, position, and player, and add it to the player's warps.
@@ -15,11 +24,12 @@ import java.util.Objects;
 public class Warp {
 
     private final String _name;
-    private final float _x, _y, _z, _yaw, _pitch;
+    private final int _x, _y, _z;
+    private final float _yaw, _pitch;
     private final ServerPlayer _player;
     private ServerLevel _dimension;
 
-    private Warp(String name, float x, float y, float z, float yaw, float pitch, ServerPlayer player) {
+    private Warp(String name, int x, int y, int z, float yaw, float pitch, ServerPlayer player) {
         _x = x;
         _y = y;
         _z = z;
@@ -30,12 +40,12 @@ public class Warp {
         _dimension = player.getLevel();
     }
 
-    private Warp(String name, float x, float y, float z, float yaw, float pitch, ServerPlayer player, ServerLevel level) {
+    private Warp(String name, int x, int y, int z, float yaw, float pitch, ServerPlayer player, ServerLevel level) {
         this(name, x, y, z, yaw, pitch, player);
         _dimension = level;
     }
 
-    private Warp(String name, float x, float y, float z, float yaw, float pitch, ServerPlayer player, ResourceLocation level) {
+    private Warp(String name, int x, int y, int z, float yaw, float pitch, ServerPlayer player, ResourceLocation level) {
         this(name, x, y, z, yaw, pitch, player);
         for (ServerLevel l : Objects.requireNonNull(player.getServer()).getAllLevels()) {
             if (l.dimension().location().equals(level)) {
@@ -59,7 +69,6 @@ public class Warp {
      * @return The location of the dimension.
      */
     public ResourceLocation getLevelResourceLocation() {
-        WarpMod.log.info(String.format("LOCATION IS: %s", _dimension.dimension().location()));
         return _dimension.dimension().location();
     }
 
@@ -77,7 +86,7 @@ public class Warp {
      *
      * @return the x coordinate
      */
-    public float getX() {
+    public int getX() {
         return _x;
     }
 
@@ -86,7 +95,7 @@ public class Warp {
      *
      * @return the y coordinate
      */
-    public float getY() {
+    public int getY() {
         return _y;
     }
 
@@ -95,7 +104,7 @@ public class Warp {
      *
      * @return the z coordinate
      */
-    public float getZ() {
+    public int getZ() {
         return _z;
     }
 
@@ -124,7 +133,7 @@ public class Warp {
      * @return the <b>BlockPos</b>
      */
     public BlockPos getPos() {
-        return new BlockPos((int) _x, (int) _y, (int) _z);
+        return new BlockPos(_x, _y, _z);
     }
 
     /**
@@ -144,9 +153,9 @@ public class Warp {
     public CompoundTag toNBT() {
         CompoundTag tag = new CompoundTag();
         tag.putString("name", getName());
-        tag.putFloat("x", ((int) getX()) + 0.5f);
-        tag.putFloat("y", (int) getY());
-        tag.putFloat("z", (getZ() + 0.5f));
+        tag.putInt("x", getX());
+        tag.putInt("y", getY());
+        tag.putInt("z", getZ());
         tag.putFloat("yaw", getYaw());
         tag.putFloat("pitch", getPitch());
         tag.putString("dim", getLevelResourceLocation().toString());
@@ -157,12 +166,84 @@ public class Warp {
      * Teleports the player to the warp location.
      */
     public void teleportTo() {
-        _player.teleportTo(getLevel(), getX(), getY(), getZ(), getPitch(), getYaw());
-        Warps.fromPlayer(_player).createAddOrUpdate(createBack(_player));
+        Warp back = createBack(_player);
+        _player.teleportTo(getLevel(), getX() + .5, getY(), getZ() + .5, getYaw(), getPitch());
+        Warps.fromPlayer(_player).createAddOrUpdate(back);
+    }
+
+    public static int teleportRandom(ServerPlayer player, int maxDistance, int minDistance) {
+        Warp.createBack(player);
+        int currentX = player.getBlockX();
+        int currentZ = player.getBlockZ();
+
+        Vec2 vec = GetRandomCoords(player, maxDistance, minDistance);
+        int randX = (int) vec.x;
+        int randZ = (int) vec.y;
+        int y = player.getLevel().getLogicalHeight() - 4;
+        int dist = Math.abs((currentX - randX) + (currentZ - randZ));
+
+//        WarpMod.log.info(String.format("DIST: %d, X: %d, Z: %d", dist, randX, randZ));
+
+        boolean isSafe = false;
+        int maxTries = 10000;
+        for (int i = 0; i < maxTries; i++) {
+            WarpMod.log.info("Warping random...");
+
+            ServerLevel level = player.getLevel();
+
+            BlockPos blockPos = BlockPos.containing(randX, y, randZ);
+            while (!isSafe && blockPos.getY() > level.getMinBuildHeight()) {
+                BlockPos belowPos = blockPos.below();
+                BlockState blockState = level.getBlockState(belowPos);
+                BlockState headBlockState = level.getBlockState(blockPos.above());
+                BlockState feetBlockState = level.getBlockState(blockPos);
+                boolean legSafe = !feetBlockState.getMaterial().blocksMotion() && !feetBlockState.getMaterial().isLiquid() && feetBlockState.getMaterial() != Material.FIRE;
+                boolean headSafe = !headBlockState.getMaterial().blocksMotion() && !headBlockState.getMaterial().isLiquid() && headBlockState.getMaterial() != Material.FIRE;
+                if (blockState.getMaterial().blocksMotion() && headSafe && legSafe && level.isInWorldBounds(blockPos)) {
+                    isSafe = true;
+                } else {
+                    --y;
+                    blockPos = belowPos;
+                }
+            }
+
+            WarpMod.log.info(String.format("DIST: %d, X: %d, Y: %d, Z: %d, ATTMPET: %d", dist, randX, y, randZ, i));
+            if (!isSafe) {
+                vec = GetRandomCoords(player, maxDistance, minDistance);
+                randX = (int) vec.x;
+                randZ = (int) vec.y;
+                dist = Math.abs((currentX - randX) + (currentZ - randZ));
+
+                WarpMod.log.info(String.format("DIST: %d, X: %d, Y: %d, Z: %d, ATTMPET: %d", dist, randX, y, randZ, i));
+                y = player.getLevel().getLogicalHeight();
+                continue;
+            }
+            break;
+        }
+        if (isSafe)
+            player.teleportTo(randX + .5, y + 1, randZ + .5);
+        return isSafe ? dist / 2 : 0;
+    }
+
+
+    private static Vec2 GetRandomCoords(ServerPlayer player, int maxDistance, int minDistance) {
+        Random rand = new Random();
+        int randX, randZ;
+        boolean negX, negZ;
+        negX = rand.nextBoolean();
+        negZ = rand.nextBoolean();
+        randX = rand.nextInt(minDistance, maxDistance);
+        if (negX)
+            randX *= -1;
+        randZ = rand.nextInt(minDistance, maxDistance);
+        if (negZ)
+            randZ *= -1;
+
+        return new Vec2(player.getBlockX() + randX, player.getBlockZ() + randZ);
     }
 
     public static Warp createBack(ServerPlayer player) {
-        return Warp.create("back", player.getBlockX() + .5f, player.getBlockY(), player.getBlockZ() + .5f, player.getYRot(), player.getXRot(), player);
+        return Warp.create("back", player.getBlockX(), player.getBlockY(), player.getBlockZ(), player.getYRot(), player.getXRot(), player, true);
     }
 
     /**
@@ -174,9 +255,9 @@ public class Warp {
      */
     public static Warp fromTag(CompoundTag tag, ServerPlayer player) {
         String name = tag.getString("name");
-        float x = tag.getFloat("x");
-        float y = tag.getFloat("y");
-        float z = tag.getFloat("z");
+        int x = tag.getInt("x");
+        int y = tag.getInt("y");
+        int z = tag.getInt("z");
         float yaw = tag.getFloat("yaw");
         float pitch = tag.getFloat("pitch");
         ResourceLocation dim = new ResourceLocation(tag.getString("dim")); // minecraft:the_nether
@@ -193,10 +274,12 @@ public class Warp {
      * @param player The player who created the warp
      * @return A new warp object
      */
-    public static Warp create(String name, float x, float y, float z, float yaw, float pitch, ServerPlayer player) {
+    public static Warp create(String name, int x, int y, int z, float yaw, float pitch, ServerPlayer player, boolean add) {
         Warp warp = new Warp(name, x, y, z, yaw, pitch, player);
-        Warps playersWarps = Warps.fromPlayer(player);
-        playersWarps.createAddOrUpdate(warp);
+        if (add) {
+            Warps playersWarps = Warps.fromPlayer(player);
+            playersWarps.createAddOrUpdate(warp);
+        }
         return warp;
     }
 
@@ -211,10 +294,12 @@ public class Warp {
      * @param level  The level the warp is in.
      * @return A new Warp object
      */
-    public static Warp create(String name, float x, float y, float z, float yaw, float pitch, ServerPlayer player, ResourceLocation level) {
+    public static Warp create(String name, int x, int y, int z, float yaw, float pitch, ServerPlayer player, ResourceLocation level, boolean add) {
         Warp warp = new Warp(name, x, y, z, yaw, pitch, player, level);
-        Warps playersWarps = Warps.fromPlayer(player);
-        playersWarps.createAddOrUpdate(warp);
+        if (add) {
+            Warps playersWarps = Warps.fromPlayer(player);
+            playersWarps.createAddOrUpdate(warp);
+        }
         return warp;
     }
 
@@ -231,10 +316,12 @@ public class Warp {
      * @param level  The level the warp is in
      * @return A new Warp object.
      */
-    public static Warp create(String name, float x, float y, float z, float yaw, float pitch, ServerPlayer player, ServerLevel level) {
+    public static Warp create(String name, int x, int y, int z, float yaw, float pitch, ServerPlayer player, ServerLevel level, boolean add) {
         Warp warp = new Warp(name, x, y, z, yaw, pitch, player, level);
-        Warps playersWarps = Warps.fromPlayer(player);
-        playersWarps.createAddOrUpdate(warp);
+        if (add) {
+            Warps playersWarps = Warps.fromPlayer(player);
+            playersWarps.createAddOrUpdate(warp);
+        }
         return warp;
     }
 
