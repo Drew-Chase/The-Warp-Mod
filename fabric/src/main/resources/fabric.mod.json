@@ -2,10 +2,13 @@
   "schemaVersion": 1,
   "id": "warpmod",
   "version": "${version}",
-  "name": "Warp Mod",
-  "description": "",
-  "authors": [],
-  "contact": {},
+  "name": "The Warp Mod",
+  "description": "The WarpMod allows the creation of and travel to various warps locations. It's a port of my popular forge mod of the same name",
+  "authors": ["Drew Chase"],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/the-warp-mod-fabric",
+    "sources": "https://github.com/DcmanProductions/The-Warp-Mod"
+  },
   "license": "All Rights Reserved",
   "icon": "icon.png",
   "environment": "*",
