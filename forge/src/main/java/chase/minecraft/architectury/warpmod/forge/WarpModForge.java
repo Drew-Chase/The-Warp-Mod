@@ -1,7 +1,7 @@
 package chase.minecraft.architectury.warpmod.forge;
 
-import dev.architectury.platform.forge.EventBuses;
 import chase.minecraft.architectury.warpmod.WarpMod;
+import dev.architectury.platform.forge.EventBuses;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
