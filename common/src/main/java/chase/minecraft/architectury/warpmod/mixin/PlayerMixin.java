@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerPlayer.class)
+@SuppressWarnings("all")
 public class PlayerMixin {
 
     @Inject(at = @At("RETURN"), method = "addAdditionalSaveData")
