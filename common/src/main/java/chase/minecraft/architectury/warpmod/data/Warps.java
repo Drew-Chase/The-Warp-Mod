@@ -11,10 +11,10 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-
+@SuppressWarnings("unused")
 public class Warps {
     private static HashMap<ServerPlayer, Warps> _instance;
-    private HashMap<String, Warp> _warps;
+    private final HashMap<String, Warp> _warps;
     private final ServerPlayer _player;
 
     private Warps(ServerPlayer player) {
@@ -80,7 +80,7 @@ public class Warps {
 
     /**
      * "Return a CompletableFuture that completes with a Suggestions object containing all the warps in the server."
-     *
+     * <p>
      * The first line of the function is the return statement. It returns a CompletableFuture that completes with a
      * Suggestions object
      *
