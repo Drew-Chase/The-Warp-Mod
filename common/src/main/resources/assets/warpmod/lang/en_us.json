@@ -1,0 +1,20 @@
+{
+  "key.categories.warpmod": "Warp Mod",
+  "key.warpmod.open_warps_screen": "Open Warps Menu",
+  "key.warpmod.open_create_warps_screen": "Create Warp",
+  "gui.warpmod.list.title": "Warps",
+  "warpmod.teleport": "Teleport",
+  "warpmod.remove": "Remove",
+  "warpmod.edit": "Edit",
+  "warpmod.edit.title": "Edit Warp",
+  "warpmod.create": "Create Warp",
+  "warpmod.edit.name": "Name",
+  "warpmod.edit.x": "X",
+  "warpmod.edit.y": "Y",
+  "warpmod.edit.z": "Z",
+  "warpmod.edit.pitch": "Pitch",
+  "warpmod.edit.yaw": "Yaw",
+  "warpmod.edit.rgb": "RGB",
+  "warpmod.edit.dim": "Dimension",
+  "warpmod.edit.save": "Save"
+}

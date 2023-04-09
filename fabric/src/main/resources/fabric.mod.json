@@ -4,7 +4,9 @@
   "version": "${version}",
   "name": "The Warp Mod",
   "description": "The WarpMod allows the creation of and travel to various warps locations.",
-  "authors": ["Drew Chase"],
+  "authors": [
+    "Drew Chase"
+  ],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/the-warp-mod-fabric",
     "sources": "https://modrinth.com/mod/warp-mod"
@@ -13,7 +15,12 @@
   "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": ["chase.minecraft.architectury.warpmod.fabric.WarpModFabric"]
+    "main": [
+      "chase.minecraft.architectury.warpmod.fabric.WarpModFabric"
+    ],
+    "client": [
+      "chase.minecraft.architectury.warpmod.fabric.ClientWarpModFabric"
+    ]
   },
   "mixins": [
     "warpmod.mixins.json",

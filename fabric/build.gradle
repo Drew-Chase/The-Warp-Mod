@@ -25,6 +25,7 @@ repositories {
             includeGroup "com.terraformersmc"
         }
     }
+    maven { url "https://maven.bai.lol" }
 }
 
 dependencies {
@@ -36,9 +37,12 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
     // ModMenu
-    modApi ("com.terraformersmc:modmenu:${rootProject.modmenu_version}") {
+    modApi("com.terraformersmc:modmenu:${rootProject.modmenu_version}") {
         exclude group: "net.fabricmc.fabric-api"
     }
+
+    // Bad Packets
+    modRuntimeOnly "lol.bai:badpackets:fabric-0.4.1"
 }
 
 processResources {

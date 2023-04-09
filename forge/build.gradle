@@ -1,6 +1,9 @@
+
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
+
+
 archivesBaseName = "${rootProject.archives_base_name}-${rootProject.minecraft_version}-forge"
 architectury {
     platformSetupLoomIde()
@@ -15,6 +18,10 @@ configurations {
     developmentForge.extendsFrom common
 }
 
+repositories {
+    maven { url "https://maven.bai.lol" }
+}
+
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.forge_version}"
     // Remove the next line if you don't want to depend on the API
@@ -22,6 +29,9 @@ dependencies {
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+
+    // Bad Packets
+    modRuntimeOnly "lol.bai:badpackets:forge-${badpackets_version}"
 }
 
 processResources {
