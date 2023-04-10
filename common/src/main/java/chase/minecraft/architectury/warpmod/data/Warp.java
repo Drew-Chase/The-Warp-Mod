@@ -4,7 +4,6 @@ import chase.minecraft.architectury.warpmod.WarpMod;
 import chase.minecraft.architectury.warpmod.server.RepeatingServerTasks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -21,7 +20,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-
 
 import java.util.Objects;
 import java.util.Random;

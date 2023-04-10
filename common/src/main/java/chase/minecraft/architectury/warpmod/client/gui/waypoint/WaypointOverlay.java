@@ -8,23 +8,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix4f;
-import org.joml.Matrix4fc;
 import org.joml.Vector2f;
-import org.joml.Vector4f;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-
-import java.lang.reflect.Method;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-
-import static org.lwjgl.opengl.GL11.*;
 
 public class WaypointOverlay extends GuiComponent
 {
@@ -120,13 +108,12 @@ public class WaypointOverlay extends GuiComponent
 		double dy = wy - py;
 		double dz = wz - pz;
 
-	// Calculate the distance between the player and the warp
+		// Calculate the distance between the player and the warp
 		double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 		
 		// TODO: Calculate the screen space position of the warp point relative to the players position and rotation
 		
 		return new Vector2f(0,0);
-		
 		
 	}
 	
