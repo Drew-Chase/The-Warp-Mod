@@ -69,6 +69,12 @@ public class WarpList extends ContainerObjectSelectionList<WarpList.Entry>
 	}
 	
 	@Environment(EnvType.CLIENT)
+	public static abstract class Entry extends ContainerObjectSelectionList.Entry<Entry>
+	{
+		abstract void refreshEntry();
+	}
+	
+	@Environment(EnvType.CLIENT)
 	public class WarpEntry extends Entry
 	{
 		private final ImmutableList<Button> _buttons;
@@ -154,11 +160,5 @@ public class WarpList extends ContainerObjectSelectionList<WarpList.Entry>
 		{
 		
 		}
-	}
-	
-	@Environment(EnvType.CLIENT)
-	public static abstract class Entry extends ContainerObjectSelectionList.Entry<Entry>
-	{
-		abstract void refreshEntry();
 	}
 }

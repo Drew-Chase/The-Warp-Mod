@@ -17,12 +17,12 @@ import org.joml.Vector2f;
 public class WaypointOverlay extends GuiComponent
 {
 	
+	public static final ResourceLocation WAYPOINT_TEXTURE = WarpMod.id("textures/gui/waypoint.png");
+	public static final int TEXTURE_SIZE = 32;
 	@NotNull
 	private final Minecraft _minecraft;
 	@NotNull
 	private final ClientWarps.ClientWarp _warp;
-	public static final ResourceLocation WAYPOINT_TEXTURE = WarpMod.id("textures/gui/waypoint.png");
-	public static final int TEXTURE_SIZE = 32;
 	
 	public WaypointOverlay(@NotNull Minecraft minecraft, @NotNull ClientWarps.ClientWarp warp)
 	{
@@ -107,13 +107,13 @@ public class WaypointOverlay extends GuiComponent
 		double dx = wx - px;
 		double dy = wy - py;
 		double dz = wz - pz;
-
+		
 		// Calculate the distance between the player and the warp
 		double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 		
 		// TODO: Calculate the screen space position of the warp point relative to the players position and rotation
 		
-		return new Vector2f(0,0);
+		return new Vector2f(0, 0);
 		
 	}
 	

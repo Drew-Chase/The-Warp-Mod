@@ -31,10 +31,10 @@ import java.util.Random;
 public class Warp
 {
 	
+	private final ServerPlayer _player;
 	private String _name, _displayName;
 	private double _x, _z, _y;
 	private float _yaw, _pitch;
-	private final ServerPlayer _player;
 	private ServerLevel _dimension;
 	
 	private Warp(String name, double x, double y, double z, float yaw, float pitch, ServerPlayer player)
@@ -139,22 +139,6 @@ public class Warp
 		if (isSafe) player.teleportTo(randX + .5, y, randZ + .5);
 		
 		return isSafe ? (int) playerPos.distanceTo(new Vec3(player.getBlockX(), player.getBlockY(), player.getBlockZ())) + 1 : 0;
-	}
-	
-	public void update(double x, double y, double z, float pitch, float yaw, ResourceLocation dimension)
-	{
-		this._x = x;
-		this._y = y;
-		this._z = z;
-		this._pitch = pitch;
-		this._yaw = yaw;
-		for (ServerLevel l : Objects.requireNonNull(_player.getServer()).getAllLevels())
-		{
-			if (l.dimension().location().equals(dimension))
-			{
-				this._dimension = l;
-			}
-		}
 	}
 	
 	/**
@@ -412,6 +396,22 @@ public class Warp
 			playersWarps.createAddOrUpdate(warp);
 		}
 		return warp;
+	}
+	
+	public void update(double x, double y, double z, float pitch, float yaw, ResourceLocation dimension)
+	{
+		this._x = x;
+		this._y = y;
+		this._z = z;
+		this._pitch = pitch;
+		this._yaw = yaw;
+		for (ServerLevel l : Objects.requireNonNull(_player.getServer()).getAllLevels())
+		{
+			if (l.dimension().location().equals(dimension))
+			{
+				this._dimension = l;
+			}
+		}
 	}
 	
 	/**

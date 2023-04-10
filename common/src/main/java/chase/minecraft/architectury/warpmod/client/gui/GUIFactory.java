@@ -28,16 +28,20 @@ public class GUIFactory
 	{
 		return new EditBox(font, x, y, width, height, label);
 	}
+	
 	public static EditBox createNumbersTextBox(Font font, int x, int y, int width, int height, Component label)
 	{
 		EditBox box = new EditBox(font, x, y, width, height, label);
-		box.setFilter(f->{
-			if(f.isEmpty())
+		box.setFilter(f ->
+		{
+			if (f.isEmpty())
 				return true;
-			try{
+			try
+			{
 				Double.parseDouble(f);
 				return true;
-			}catch(NumberFormatException e){
+			} catch (NumberFormatException e)
+			{
 				return false;
 			}
 		});

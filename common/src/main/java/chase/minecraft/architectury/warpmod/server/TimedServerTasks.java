@@ -54,8 +54,8 @@ public class TimedServerTasks
 	/**
 	 * This function creates a timed server task with a given name and duration, and an optional onCompletion runnable, and returns a boolean indicating success or failure.
 	 *
-	 * @param name A string representing the name of the task to be created.
-	 * @param duration The duration parameter is a long value representing the time in milliseconds for which the TimedServerTask should run before it is completed.
+	 * @param name         A string representing the name of the task to be created.
+	 * @param duration     The duration parameter is a long value representing the time in milliseconds for which the TimedServerTask should run before it is completed.
 	 * @param onCompletion The onCompletion parameter is a Runnable object that represents a task to be executed when the timed server task is completed. It is an optional parameter and can be set to null if no action is required upon completion of the task.
 	 * @return The method `create` returns a boolean value. It returns `true` if a new `TimedServerTask` is successfully created and added to the `_tasks` map, and `false` if a task with the same name already exists in the map.
 	 */
@@ -75,7 +75,7 @@ public class TimedServerTasks
 	/**
 	 * This function creates an object with a given name and duration in minutes, and returns a boolean value indicating success or failure.
 	 *
-	 * @param name A String representing the name of the object being created.
+	 * @param name            A String representing the name of the object being created.
 	 * @param durationMinutes durationMinutes is an integer parameter that represents the duration of an event in minutes. It is used in a method called "create" which creates an event with a given name and duration. If the method is called with only the name and durationMinutes parameters, the third parameter (which is optional) is
 	 * @return The `create` method is returning a boolean value. The value being returned is the result of calling the `create` method with three parameters: `name`, `durationMinutes`, and `null`.
 	 */

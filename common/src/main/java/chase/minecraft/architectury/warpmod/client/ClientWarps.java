@@ -14,25 +14,8 @@ import java.util.HashMap;
 @Environment(EnvType.CLIENT)
 public class ClientWarps
 {
-	public record ClientWarp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension)
-	{
-		public CompoundTag toNBT()
-		{
-			CompoundTag tag = new CompoundTag();
-			tag.putString("name", name());
-			tag.putDouble("x", x());
-			tag.putDouble("y", y());
-			tag.putDouble("z", z());
-			tag.putFloat("pitch", pitch());
-			tag.putFloat("yaw", yaw());
-			tag.putString("dim", dimension.toString());
-			return tag;
-		}
-	}
-	
 	public static ClientWarps Instance = new ClientWarps();
 	private final HashMap<String, ClientWarp> _warps;
-	
 	private ClientWarps()
 	{
 		Instance = this;
@@ -57,7 +40,6 @@ public class ClientWarps
 	{
 		return _warps.containsKey(name);
 	}
-	
 	
 	public void fromNBT(@NotNull CompoundTag tag)
 	{
@@ -86,6 +68,22 @@ public class ClientWarps
 			WarpMod.log.error(String.format("Unable to load Player Warp NBT: %s", e.getMessage()));
 		}
 		WarpMod.log.info(String.format("%d Warps found!", _warps.size()));
+	}
+	
+	public record ClientWarp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension)
+	{
+		public CompoundTag toNBT()
+		{
+			CompoundTag tag = new CompoundTag();
+			tag.putString("name", name());
+			tag.putDouble("x", x());
+			tag.putDouble("y", y());
+			tag.putDouble("z", z());
+			tag.putFloat("pitch", pitch());
+			tag.putFloat("yaw", yaw());
+			tag.putString("dim", dimension.toString());
+			return tag;
+		}
 	}
 	
 	

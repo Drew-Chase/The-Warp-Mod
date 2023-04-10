@@ -28,12 +28,12 @@ public class EditWarpScreen extends Screen
 {
 	@Nullable
 	private final Screen _parent;
-	private EditBox _nameBox, _xBox, _yBox, _zBox, _pitchBox, _yawBox;
 	private final ClientWarps.ClientWarp _warp;
 	@NotNull
 	private final LocalPlayer player;
-	private String dimension;
 	private final String ogName;
+	private EditBox _nameBox, _xBox, _yBox, _zBox, _pitchBox, _yawBox;
+	private String dimension;
 	private Button _saveButton;
 	
 	public EditWarpScreen(@Nullable Screen parent, @NotNull ClientWarps.ClientWarp warp)
