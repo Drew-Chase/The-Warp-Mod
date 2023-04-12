@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressWarnings("all")
 public class RenderProfiler
 {
 	static final Stack<Entry> s = new Stack<>();

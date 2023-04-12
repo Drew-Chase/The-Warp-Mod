@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
 
+@SuppressWarnings("all")
 public class WaypointOverlay extends GuiComponent
 {
 	
