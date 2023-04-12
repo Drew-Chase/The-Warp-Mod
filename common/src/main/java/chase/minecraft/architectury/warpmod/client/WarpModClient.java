@@ -1,5 +1,6 @@
 package chase.minecraft.architectury.warpmod.client;
 
+import chase.minecraft.architectury.warpmod.networking.ClientNetworking;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.PacketSender;
@@ -19,7 +20,7 @@ public abstract class WarpModClient
 	public static void init()
 	{
 		initKeyBindings();
-		WarpNetworking.initClient();
+		ClientNetworking.init();
 		
 	}
 	
@@ -54,5 +55,6 @@ public abstract class WarpModClient
 	protected static void onServerLogout(Connection connection)
 	{
 	}
+	
 	
 }
