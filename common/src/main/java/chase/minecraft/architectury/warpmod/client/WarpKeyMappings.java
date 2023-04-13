@@ -1,7 +1,7 @@
 package chase.minecraft.architectury.warpmod.client;
 
 import chase.minecraft.architectury.warpmod.client.gui.EditWarpScreen;
-import chase.minecraft.architectury.warpmod.client.gui.WarpScreen;
+import chase.minecraft.architectury.warpmod.client.gui.WarpListScreen;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import net.fabricmc.api.EnvType;
@@ -16,7 +16,7 @@ public enum WarpKeyMappings
 	OPEN_WARPS("open_warps_screen", InputConstants.KEY_U, () ->
 	{
 		Minecraft client = Minecraft.getInstance();
-		client.setScreen(new WarpScreen(null));
+		client.setScreen(new WarpListScreen(null));
 	}),
 	CREATE_WARP("open_create_warps_screen", InputConstants.KEY_B, () ->
 	{

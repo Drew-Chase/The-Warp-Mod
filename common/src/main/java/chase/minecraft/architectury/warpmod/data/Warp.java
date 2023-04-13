@@ -1,325 +1,284 @@
 package chase.minecraft.architectury.warpmod.data;
 
-import chase.minecraft.architectury.warpmod.WarpMod;
-import chase.minecraft.architectury.warpmod.server.RepeatingServerTasks;
-import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
+import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
+import chase.minecraft.architectury.warpmod.utils.WorldUtils;
+import io.netty.buffer.Unpooled;
+import lol.bai.badpackets.api.PacketSender;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.bossevents.CustomBossEvent;
-import net.minecraft.server.bossevents.CustomBossEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.Random;
+import java.nio.charset.Charset;
 
 /**
- * Warp object holds name, position, and player, and add it to the player's warps.
+ * Object for storing Warp locations
  */
-@SuppressWarnings("unused")
+@SuppressWarnings("all")
 public class Warp
 {
+	private String name;
+	private double x, y, z;
+	private float pitch, yaw;
+	private int color;
+	private ResourceLocation dimension;
+	private final Player player;
+	private ResourceLocation icon;
+	private boolean temporary = false;
+	public static Warp EMPTY = new Warp("", 0, 0, 0, 0, 0, new ResourceLocation("overworld"), null);
 	
-	private final ServerPlayer _player;
-	private String _name, _displayName;
-	private double _x, _z, _y;
-	private float _yaw, _pitch;
-	private ServerLevel _dimension;
 	
-	private Warp(String name, double x, double y, double z, float yaw, float pitch, ServerPlayer player)
+	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player)
 	{
-		_x = x;
-		_y = y;
-		_z = z;
-		_yaw = yaw;
-		_pitch = pitch;
-		_displayName = _name = name;
-		_player = player;
-		_dimension = player.getLevel();
+		this(name, x, y, z, pitch, yaw, dimension, player, false, WaypointIcons.DEFAULT, 0xFF_FF_FF);
 	}
 	
-	private Warp(String name, double x, double y, double z, float yaw, float pitch, ServerPlayer player, ServerLevel level)
+	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary)
 	{
-		this(name, x, y, z, yaw, pitch, player);
-		_dimension = level;
+		this(name, x, y, z, pitch, yaw, dimension, player, temporary, WaypointIcons.DEFAULT, 0xFF_FF_FF);
 	}
 	
-	private Warp(String name, double x, double y, double z, float yaw, float pitch, ServerPlayer player, ResourceLocation level)
-	{
-		this(name, x, y, z, yaw, pitch, player);
-		for (ServerLevel l : Objects.requireNonNull(player.getServer()).getAllLevels())
-		{
-			if (l.dimension().location().equals(level))
-			{
-				_dimension = l;
-			}
-		}
-	}
 	
-	/**
-	 * It teleports the player to a random location within the specified distance
-	 *
-	 * @param player      The player to teleport
-	 * @param maxDistance The maximum distance the player can be teleported.
-	 * @param minDistance The minimum distance from the player to teleport to.
-	 * @return A Vec2 object
-	 */
-	public static int teleportRandom(ServerPlayer player, int maxDistance, int minDistance)
+	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary, ResourceLocation icon, int color)
 	{
-		Warp.createBack(player);
-		int currentX = player.getBlockX();
-		int currentZ = player.getBlockZ();
-		
-		Vec2 vec = GetRandomCords(player, maxDistance, minDistance);
-		int randX = (int) vec.x;
-		int randZ = (int) vec.y;
-		int y = player.getLevel().getLogicalHeight() - 4;
-		int dist = Math.abs((currentX - randX) + (currentZ - randZ));
-		
-		boolean isSafe = false;
-		int maxTries = 10000;
-		// Finding a random location within a certain distance of the player.
-		for (int i = 0; i < maxTries; i++)
-		{
-			WarpMod.log.info("Warping random...");
-			
-			Level level = player.getLevel();
-			
-			BlockPos blockPos = BlockPos.containing(randX, y, randZ);
-			// Checking if the block is safe to spawn on.
-			while (!isSafe && blockPos.getY() > level.getMinBuildHeight())
-			{
-				BlockPos belowPos = blockPos.below();
-				BlockState blockState = level.getBlockState(belowPos);
-				BlockState headBlockState = level.getBlockState(blockPos.above());
-				BlockState feetBlockState = level.getBlockState(blockPos);
-				boolean foundLiquid = feetBlockState.getMaterial().isLiquid() || feetBlockState.getMaterial() == Material.FIRE || headBlockState.getMaterial().isLiquid() || headBlockState.getMaterial() == Material.FIRE || blockState.getMaterial().isLiquid() || blockState.getMaterial() == Material.FIRE;
-				boolean legSafe = !feetBlockState.getMaterial().blocksMotion() && !feetBlockState.getMaterial().isLiquid() && feetBlockState.getMaterial() != Material.FIRE;
-				boolean headSafe = !headBlockState.getMaterial().blocksMotion() && !headBlockState.getMaterial().isLiquid() && headBlockState.getMaterial() != Material.FIRE;
-				if (foundLiquid)
-				{
-					isSafe = false;
-					break;
-				}
-				if (blockState.getMaterial().blocksMotion() && headSafe && legSafe && level.isInWorldBounds(blockPos))
-				{
-					isSafe = true;
-				} else
-				{
-					--y;
-					blockPos = belowPos;
-				}
-			}
-			
-			if (!isSafe)
-			{
-				// Trying to find a random location within a certain distance of the player.
-				vec = GetRandomCords(player, maxDistance, minDistance);
-				randX = (int) vec.x;
-				randZ = (int) vec.y;
-				dist = Math.abs((currentX - randX) + (currentZ - randZ));
-				
-				y = player.getLevel().getLogicalHeight();
-				continue;
-			}
-			break;
-		}
-		Vec3 playerPos = new Vec3(player.getBlockX(), player.getBlockY(), player.getBlockZ());
-		if (isSafe) player.teleportTo(randX + .5, y, randZ + .5);
-		
-		return isSafe ? (int) playerPos.distanceTo(new Vec3(player.getBlockX(), player.getBlockY(), player.getBlockZ())) + 1 : 0;
+		this.name = name;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.pitch = pitch;
+		this.yaw = yaw;
+		this.dimension = dimension;
+		this.player = player;
+		this.temporary = temporary;
 	}
 	
 	/**
-	 * It returns a random coordinate within a specified range of the player
-	 *
-	 * @param player      The player to teleport
-	 * @param maxDistance The maximum distance from the player that the coordinates can be.
-	 * @param minDistance The minimum distance from the player that the coordinates can be.
-	 * @return A Vec2 object with the x and z coordinates of a random location within the specified range.
+	 * @return the name of the warp
 	 */
-	private static Vec2 GetRandomCords(Player player, int maxDistance, int minDistance)
+	public String getName()
 	{
-		Random rand = new Random();
-		int randX, randZ;
-		boolean negX, negZ;
-		negX = rand.nextBoolean();
-		negZ = rand.nextBoolean();
-		if (maxDistance == minDistance)
+		return name;
+	}
+	
+	/**
+	 * @return the y coordinate
+	 */
+	public double getX()
+	{
+		return x;
+	}
+	
+	/**
+	 * @return the y coordinate
+	 */
+	public double getY()
+	{
+		return y;
+	}
+	
+	/**
+	 * @return the z coordinate
+	 */
+	public double getZ()
+	{
+		return z;
+	}
+	
+	/**
+	 * @return the pitch looking direction
+	 */
+	public float getPitch()
+	{
+		return pitch;
+	}
+	
+	/**
+	 * @return the yaw looking direction
+	 */
+	public float getYaw()
+	{
+		return yaw;
+	}
+	
+	/**
+	 * Gets the color of the warp, this will be used for ClientSide waypoint rendering.
+	 *
+	 * @return
+	 */
+	public int getColor()
+	{
+		return color;
+	}
+	
+	/**
+	 * Gets the dimensions resource location of the warp
+	 *
+	 * @return
+	 */
+	public ResourceLocation getDimension()
+	{
+		return dimension;
+	}
+	
+	/**
+	 * Gets the player that the warp belongs to
+	 *
+	 * @return
+	 */
+	public Player getPlayer()
+	{
+		return player;
+	}
+	
+	/**
+	 * Gets the resource location of the icon.
+	 *
+	 * @return the icons resource location
+	 */
+	public ResourceLocation getIcon()
+	{
+		return icon;
+	}
+	
+	/**
+	 * Returns if the warp is temporary.
+	 *
+	 * @return TRUE if the warp is temporary, FALSE otherwise.
+	 */
+	public boolean temporary()
+	{
+		return temporary;
+	}
+	
+	/**
+	 * This Java function updates the location and orientation of a resource with a given name and dimension.
+	 *
+	 * @param name      A string representing the name of the object being updated.
+	 * @param x         The x-coordinate of the location to be updated.
+	 * @param y         The parameter "y" represents the vertical position of an object in a three-dimensional space. It is a double data type, which means it can store decimal values.
+	 * @param z         The z-coordinate of the location being updated.
+	 * @param pitch     Pitch is the vertical angle of the player's head, measured in degrees. It determines the up and down direction of the player's view. A pitch of 0 means the player is looking straight ahead, while a pitch of 90 means the player is looking straight up.
+	 * @param yaw       Yaw is a rotation around the vertical axis, measured in degrees. It determines the direction the entity is facing horizontally. A yaw of 0 means the entity is facing south, while a yaw of 90 means the entity is facing west.
+	 * @param dimension The dimension parameter is a ResourceLocation object that represents the dimension in which the entity is located. A ResourceLocation is a unique identifier for a resource in Minecraft, and in this case, it is used to identify the dimension by its name. For example, the overworld dimension has the name "minecraft
+	 */
+	public void update(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension)
+	{
+		update(name, x, y, z, pitch, yaw, dimension, null, null);
+	}
+	
+	/**
+	 * This function updates the properties of a waypoint object with the given parameters, including name, coordinates, orientation, dimension, color, and icon.
+	 *
+	 * @param name      A string representing the name of the waypoint.
+	 * @param x         The x-coordinate of the waypoint's location.
+	 * @param y         The y parameter is a double data type representing the vertical coordinate of the waypoint location.
+	 * @param z         z is a double variable representing the z-coordinate of a waypoint location in a three-dimensional space.
+	 * @param pitch     The pitch angle of the waypoint in degrees. It represents the vertical angle of the waypoint from the horizon.
+	 * @param yaw       The yaw parameter represents the horizontal rotation of the waypoint in degrees. It determines the direction the waypoint is facing.
+	 * @param dimension ResourceLocation representing the dimension of the waypoint. A ResourceLocation is a unique identifier for a resource in Minecraft, consisting of a namespace and a path. In this case, it is used to identify the dimension of the waypoint, such as "minecraft:overworld" or "minecraft:nether".
+	 * @param color     The color of the waypoint in RGB format. If no color is specified, it defaults to white (0xFF_FF_FF).
+	 * @param icon      The icon parameter is a ResourceLocation object that represents the location of the icon image file for the waypoint. If no icon is specified, it will default to the WaypointIcons.DEFAULT image.
+	 */
+	public void update(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, @Nullable Integer color, @Nullable ResourceLocation icon)
+	{
+		this.name = name;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.pitch = pitch;
+		this.yaw = yaw;
+		this.dimension = dimension;
+		this.color = color == null ? 0xFF_FF_FF : color;
+		this.icon = icon == null ? WaypointIcons.DEFAULT : icon;
+	}
+	
+	/**
+	 * Gets the distance from the provided Vec3
+	 *
+	 * @param from - The location to get the distance from.
+	 * @return the distance
+	 */
+	public double distance(Vec3 from)
+	{
+		return from.distanceTo(getPosition());
+	}
+	
+	/**
+	 * Gets the distance from the player
+	 *
+	 * @return the distance
+	 */
+	public double distance()
+	{
+		return distance(player.getEyePosition());
+	}
+	
+	/**
+	 * Gets the location of the warp
+	 *
+	 * @return A new instance of the Vec3 class with the x, y, and z coordinates of the current object.
+	 */
+	public Vec3 getPosition()
+	{
+		return new Vec3(x, y, z);
+	}
+	
+	/**
+	 * This function teleports the player to the warp location
+	 */
+	public void teleport()
+	{
+		if (player.isLocalPlayer())
 		{
-			randX = randZ = maxDistance;
+			FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
+			FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+			buf.writeInt(name.length());
+			buf.writeCharSequence(name, Charset.defaultCharset());
+			PacketSender.c2s().send(WarpNetworking.TELEPORT, data);
 		} else
 		{
-			randX = rand.nextInt(minDistance, maxDistance);
-			randZ = rand.nextInt(minDistance, maxDistance);
-		}
-		if (negX) randX *= -1;
-		if (negZ) randZ *= -1;
-		
-		return new Vec2(player.getBlockX() + randX, player.getBlockZ() + randZ);
-	}
-	
-	/**
-	 * The function calculates the travel parameters for a player to travel from one player's location to another player's location.
-	 *
-	 * @param fromPlayer A Player object representing the player who is initiating the warp travel.
-	 * @param toPlayer   The "toPlayer" parameter is an instance of the Player class representing the player to whom the travel is being calculated. It contains information about the player's current location, including their X, Y, and Z coordinates.
-	 * @return The method `calculateTravel` is returning an object of type `WarpTravelParameters`.
-	 */
-	public static WarpTravelParemeters calculateTravel(Player fromPlayer, Player toPlayer)
-	{
-		return calculateTravel(fromPlayer, toPlayer.getX(), toPlayer.getY(), toPlayer.getZ());
-	}
-	
-	/**
-	 * The function calculates the travel parameters for a player to warp to a specific location, including distance and a visual representation of the direction.
-	 *
-	 * @param player A Player object representing the player who is traveling.
-	 * @param x      The x-coordinate of the destination location the player wants to travel to.
-	 * @param y      The "y" parameter represents the y-coordinate of the destination location for a warp travel calculation.
-	 * @param z      The z-coordinate of the destination location for the warp travel.
-	 * @return The method is returning an instance of the WarpTravelParemeters class, which contains the distance between the player and the specified coordinates, as well as a mutable component that represents a visual indicator of the direction the player needs to travel in order to reach the coordinates.
-	 */
-	public static WarpTravelParemeters calculateTravel(Player player, double x, double y, double z)
-	{
-		int distance = (int) new Vec3(player.getX(), player.getY(), player.getZ()).distanceTo(new Vec3(x, y, z));
-		
-		// This is calculating the relative rotation angle between a player and a target location (specified by x and z coordinates). It first calculates the angle between the target location and the player's position using the Math.atan2() method. It then converts this angle from radians to degrees and ensures that it is within the range of 0 to 360 degrees.
-		double dx = x - player.getX();
-		double dz = z - player.getZ();
-		
-		float angle = (float) Math.toDegrees(Math.atan2(dz, dx));
-		if (angle < 0)
-			angle += 360;
-		
-		float relativeRotation = angle - player.getYRot();
-		if (relativeRotation > 180)
-			relativeRotation -= 360;
-		else if (relativeRotation < -180)
-			relativeRotation += 360;
-		relativeRotation -= 90;
-		if (relativeRotation < 0)
-			relativeRotation += 360;
-		
-		// This is calculating the percentage of how much an object is offscreen to the left or right based on its relative rotation angle. It first defines the leftmost and rightmost angles that are considered offscreen. Then it checks if the object is offscreen to the left or right based on its relative rotation angle. Finally, it calculates the percentage of how much the object is offscreen by adding the rightmost angle to the relative rotation angle and dividing it by 180.
-		int leftMostAngle = 270;
-		int rightMostAngle = 90;
-		boolean offscreenLeft = relativeRotation < leftMostAngle && relativeRotation > 180;
-		boolean offscreenRight = relativeRotation <= 180 && relativeRotation >= rightMostAngle;
-		boolean offscreen = offscreenLeft || offscreenRight;
-		
-		double percentage = 0;
-		double tmp = relativeRotation;
-		if (relativeRotation > rightMostAngle)
-			tmp -= 360;
-		
-		tmp += rightMostAngle;
-		percentage = tmp / 180;
-		
-		// This is creating a progress bar using Minecraft's chat component system. The progress bar consists of a series of dashes ("-") with a marker (a green asterisk) indicating the progress. The progress is determined by a percentage value, and the number of dashes in the progress bar is determined by the "segments" variable. If the progress is offscreen (i.e. less than 0 or greater than 1), the progress bar is not displayed. The resulting progress bar is stored in the "comp" variable.
-		MutableComponent comp = Component.empty();
-		comp.append(ChatFormatting.GOLD + "[");
-		Component marker = Component.literal(ChatFormatting.GREEN + "*" + ChatFormatting.WHITE);
-		if (offscreenLeft)
-			comp.append(marker);
-		int segments = 29;
-		boolean markerEverAdded = false;
-		for (int i = 0; i <= segments; i++)
-		{
-			boolean markerAdded = false;
-			if (!offscreen && percentage > 0)
+			ServerPlayer player = (ServerPlayer) this.player;
+			ServerLevel level = WorldUtils.getLevelFromID(player.server, dimension);
+			if (level != null)
 			{
-				if (Math.round(percentage * segments) == i)
-				{
-					comp.append(marker);
-					markerAdded = true;
-					markerEverAdded = true;
-				}
-			}
-			if (!markerAdded)
-			{
-				if (offscreen)
-				{
-					if (i != segments)
-					{
-						comp.append(ChatFormatting.WHITE + "-");
-					}
-				} else
-				{
-					comp.append(ChatFormatting.WHITE + "-");
-				}
+				player.teleportTo(level, x, y, z, pitch, yaw);
 			}
 		}
-		if (offscreenRight)
-			comp.append(marker);
-		if (!offscreen && !markerEverAdded)
-			comp.append(marker);
-		comp.append(ChatFormatting.GOLD + "]");
-		
-		return new WarpTravelParemeters(distance, comp);
 	}
 	
 	/**
-	 * Create a warp named 'back' at the player's current location, and set it to be a temporary warp.
+	 * Converts this warp to NBT data
 	 *
-	 * @param player The player who is creating the warp.
-	 * @return A Warp object.
+	 * @return A CompoundTag object is being returned.
 	 */
-	public static Warp createBack(ServerPlayer player)
+	public CompoundTag toNbt()
 	{
-		ClickEvent click = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/warp back");
-		HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to warp back"));
-		Component backComp = Component.literal("BACK").withStyle(style ->
-				style
-						.withColor(ChatFormatting.GOLD)
-						.withClickEvent(click)
-						.withHoverEvent(hover)
-		);
-		Component msg = Component.literal("Created ").withStyle(ChatFormatting.GREEN).append(backComp).append(" warp").withStyle(ChatFormatting.GREEN);
-		player.sendSystemMessage(msg);
-		return Warp.create("back", player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player, true);
+		CompoundTag tag = new CompoundTag();
+		tag.putString("name", name);
+		tag.putDouble("x", x);
+		tag.putDouble("y", y);
+		tag.putDouble("z", z);
+		tag.putFloat("pitch", pitch);
+		tag.putFloat("yaw", yaw);
+		tag.putString("dimension", dimension.toString());
+		tag.putInt("color", color);
+		tag.putString("icon", icon.toString());
+		tag.putBoolean("temp", temporary);
+		return tag;
 	}
 	
 	/**
-	 * This function removes a custom boss event and cancels a repeating server task for a specific player.
+	 * This function takes in a CompoundTag and a Player object, extracts specific data from the tag, and returns a new Warp object with that data.
 	 *
-	 * @param player The player for whom the travel bar needs to be removed.
+	 * @param tag    A CompoundTag object that contains the data for the Warp object being created.
+	 * @param player The player who created the warp.
+	 * @return A new instance of the Warp class with the specified parameters.
 	 */
-	public static void removeTravelBar(Player player)
-	{
-		try
-		{
-			
-			CustomBossEvents bossEvents = Objects.requireNonNull(player.getServer()).getCustomBossEvents();
-			ResourceLocation compassBar = new ResourceLocation("warpmod", player.getDisplayName().getString().toLowerCase().replace(" ", "_"));
-			CustomBossEvent event = bossEvents.get(compassBar) == null ? bossEvents.create(compassBar, Component.empty()) : bossEvents.get(compassBar);
-			assert event != null;
-			event.removeAllPlayers();
-			RepeatingServerTasks.Instance.get(player.getDisplayName().getString()).cancel();
-		} catch (Exception e)
-		{
-		}
-	}
-	
-	/**
-	 * It takes a CompoundTag, and a Player, and returns a Warp
-	 *
-	 * @param tag    The tag that was sent from the client.
-	 * @param player The player who is warping.
-	 * @return A Warp object
-	 */
-	public static Warp fromTag(CompoundTag tag, ServerPlayer player)
+	public static Warp fromTag(CompoundTag tag, Player player)
 	{
 		String name = tag.getString("name");
 		double x = tag.getDouble("x");
@@ -327,234 +286,12 @@ public class Warp
 		double z = tag.getDouble("z");
 		float yaw = tag.getFloat("yaw");
 		float pitch = tag.getFloat("pitch");
-		ResourceLocation dim = new ResourceLocation(tag.getString("dim")); // minecraft:the_nether
-		return new Warp(name, x, y, z, yaw, pitch, player, dim);
-	}
-	
-	/**
-	 * Create a new warp with the given name, position, and player, and add it to the player's warps.
-	 *
-	 * @param name   The name of the warp.
-	 * @param x      The x coordinate of the warp
-	 * @param y      The y coordinate of the warp.
-	 * @param z      The z coordinate of the warp.
-	 * @param player The player who created the warp
-	 * @return A new warp object
-	 */
-	public static Warp create(String name, double x, double y, double z, float yaw, float pitch, ServerPlayer player, boolean add)
-	{
-		Warp warp = new Warp(name, x, y, z, yaw, pitch, player);
-		if (add)
-		{
-			Warps playersWarps = Warps.fromPlayer(player);
-			playersWarps.createAddOrUpdate(warp);
-		}
-		return warp;
-	}
-	
-	/**
-	 * Create a new warp with the given name, position, and player, and add it to the player's warps
-	 *
-	 * @param name   The name of the warp.
-	 * @param x      The x coordinate of the warp
-	 * @param y      The y coordinate of the warp.
-	 * @param z      The z coordinate of the warp
-	 * @param player The player who created the warp
-	 * @param level  The level the warp is in.
-	 * @return A new Warp object
-	 */
-	public static Warp create(String name, double x, double y, double z, float yaw, float pitch, ServerPlayer player, ResourceLocation level, boolean add)
-	{
-		Warp warp = new Warp(name, x, y, z, yaw, pitch, player, level);
-		if (add)
-		{
-			Warps playersWarps = Warps.fromPlayer(player);
-			playersWarps.createAddOrUpdate(warp);
-		}
-		return warp;
-	}
-	
-	/**
-	 * "Create a new warp with the given name, position, and player, and add it to the player's warps."
-	 * <p>
-	 * The first thing we do is create a new Warp object with the given name, position, and player
-	 *
-	 * @param name   The name of the warp.
-	 * @param x      The x coordinate of the warp
-	 * @param y      The y coordinate of the warp
-	 * @param z      The z coordinate of the warp.
-	 * @param player The player who created the warp
-	 * @param level  The level the warp is in
-	 * @return A new Warp object.
-	 */
-	public static Warp create(String name, double x, double y, double z, float yaw, float pitch, ServerPlayer player, ServerLevel level, boolean add)
-	{
-		Warp warp = new Warp(name, x, y, z, yaw, pitch, player, level);
-		if (add)
-		{
-			Warps playersWarps = Warps.fromPlayer(player);
-			playersWarps.createAddOrUpdate(warp);
-		}
-		return warp;
-	}
-	
-	public void update(double x, double y, double z, float pitch, float yaw, ResourceLocation dimension)
-	{
-		this._x = x;
-		this._y = y;
-		this._z = z;
-		this._pitch = pitch;
-		this._yaw = yaw;
-		for (ServerLevel l : Objects.requireNonNull(_player.getServer()).getAllLevels())
-		{
-			if (l.dimension().location().equals(dimension))
-			{
-				this._dimension = l;
-			}
-		}
-	}
-	
-	/**
-	 * Returns the dimension that the warp resides in.
-	 *
-	 * @return The dimension
-	 */
-	public ServerLevel getLevel()
-	{
-		return _dimension;
-	}
-	
-	/**
-	 * Returns the resource location of the dimension
-	 *
-	 * @return The location of the dimension.
-	 */
-	public ResourceLocation getLevelResourceLocation()
-	{
-		return _dimension.dimension().location();
-	}
-	
-	/**
-	 * Gets the name of the warp
-	 *
-	 * @return the warp name
-	 */
-	public String getName()
-	{
-		return _name;
-	}
-	
-	/**
-	 * Gets the X coordinate of the warp
-	 *
-	 * @return the x coordinate
-	 */
-	public double getX()
-	{
-		return _x;
-	}
-	
-	/**
-	 * Gets the Y coordinate of the warp.
-	 *
-	 * @return the y coordinate
-	 */
-	public double getY()
-	{
-		return _y;
-	}
-	
-	/**
-	 * Gets the z coordinate of the warp
-	 *
-	 * @return the z coordinate
-	 */
-	public double getZ()
-	{
-		return _z;
-	}
-	
-	/**
-	 * Gets the players head yaw.
-	 *
-	 * @return yaw
-	 */
-	public float getYaw()
-	{
-		return _yaw;
-	}
-	
-	/**
-	 * Gets the players head pitch
-	 *
-	 * @return pitch
-	 */
-	public float getPitch()
-	{
-		return _pitch;
-	}
-	
-	/**
-	 * Gets the <b>Player</b> that owns the warp.
-	 *
-	 * @return the <b>Player</b>
-	 */
-	public Player getPlayer()
-	{
-		return _player;
-	}
-	
-	/**
-	 * It returns a CompoundTag that contains the name, x, y, z, and dimension of the entity
-	 *
-	 * @return A CompoundTag
-	 */
-	public CompoundTag toNBT()
-	{
-		CompoundTag tag = new CompoundTag();
-		tag.putString("name", getName());
-		tag.putDouble("x", getX());
-		tag.putDouble("y", getY());
-		tag.putDouble("z", getZ());
-		tag.putFloat("yaw", getYaw());
-		tag.putFloat("pitch", getPitch());
-		tag.putString("dim", getLevelResourceLocation().toString());
-		return tag;
-	}
-	
-	/**
-	 * This function checks if the player's current dimension matches the level's resource location.
-	 *
-	 * @return The method is returning a boolean value, which is determined by whether the location of the player's current dimension matches the location of the level resource location.
-	 */
-	public boolean sameDimension()
-	{
-		return getPlayer().getLevel().dimension().location().equals(getLevelResourceLocation());
-	}
-	
-	public void rename(String name)
-	{
-		_name = name;
-	}
-	
-	/**
-	 * Teleports the player to the warp location.
-	 */
-	public void teleportTo()
-	{
-		Warp back = createBack(_player);
-		_player.teleportTo(getLevel(), getX(), getY(), getZ(), getYaw(), getPitch());
-		Warps.fromPlayer(_player).createAddOrUpdate(back);
-	}
-	
-	/**
-	 * This function calculates the warp travel parameters for a player's coordinates.
-	 *
-	 * @return The method `calculateTravel()` is returning an object of type `WarpTravelParameters`. The `calculateTravel()` method is overloaded and in this specific case, it is calling another version of the same method with four parameters: the player object, and three coordinates (_x, _y, _z). The returned `WarpTravelParameters` object contains information about the calculated travel distance and time.
-	 */
-	public WarpTravelParemeters calculateTravel()
-	{
-		return calculateTravel(getPlayer(), _x, _y, _z);
+		int color = tag.getInt("color");
+		boolean temp = tag.getBoolean("temp");
+		ResourceLocation icon = new ResourceLocation(tag.getString("icon"));
+		ResourceLocation dimension = new ResourceLocation(tag.getString("dimension"));
+		return new Warp(name, x, y, z, yaw, pitch, dimension, player, temp, icon, color);
+		
 	}
 	
 }

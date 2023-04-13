@@ -1,7 +1,7 @@
 package chase.minecraft.architectury.warpmod.client.gui;
 
-import chase.minecraft.architectury.warpmod.client.ClientWarps;
 import chase.minecraft.architectury.warpmod.client.WarpModClient;
+import chase.minecraft.architectury.warpmod.data.Warp;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.netty.buffer.Unpooled;
@@ -12,15 +12,16 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.nio.charset.Charset;
 
 import static chase.minecraft.architectury.warpmod.client.gui.GUIFactory.*;
 
@@ -28,23 +29,23 @@ public class EditWarpScreen extends Screen
 {
 	@Nullable
 	private final Screen _parent;
-	private final ClientWarps.ClientWarp _warp;
+	private final Warp warp;
 	@NotNull
-	private final LocalPlayer player;
+	private final Player player;
 	private final String ogName;
 	private EditBox _nameBox, _xBox, _yBox, _zBox, _pitchBox, _yawBox;
 	private String dimension;
 	private Button _saveButton;
 	
-	public EditWarpScreen(@Nullable Screen parent, @NotNull ClientWarps.ClientWarp warp)
+	public EditWarpScreen(@Nullable Screen parent, @NotNull Warp warp)
 	{
 		super(Component.translatable("warpmod.edit.title"));
 		_parent = parent;
-		_warp = warp;
+		this.warp = warp;
 		assert Minecraft.getInstance().player != null;
 		player = Minecraft.getInstance().player;
-		dimension = warp.dimension().toString();
-		ogName = warp.name();
+		dimension = warp.getDimension().toString();
+		ogName = warp.getName();
 	}
 	
 	public EditWarpScreen(@Nullable Screen parent)
@@ -53,7 +54,7 @@ public class EditWarpScreen extends Screen
 		_parent = parent;
 		assert Minecraft.getInstance().player != null;
 		player = Minecraft.getInstance().player;
-		_warp = new ClientWarps.ClientWarp("", player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location());
+		warp = new Warp("", player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player);
 		dimension = player.level.dimension().location().toString();
 		ogName = "";
 	}
@@ -64,52 +65,48 @@ public class EditWarpScreen extends Screen
 		int inputWidth = Mth.clamp(width / 3, 100, 200);
 		int inputPadding = 20;
 		_nameBox = createTextBox(font, (width / 2) - 200 / 2, height / 4, 200, 20, Component.translatable("warpmod.edit.name"));
-		_nameBox.setValue(_warp.name());
+		_nameBox.setValue(warp.getName());
 		setInitialFocus(_nameBox);
 		addRenderableWidget(_nameBox);
 		
 		_xBox = createNumbersTextBox(font, (width / 2) - inputWidth - inputPadding, (height / 4) + 40, inputWidth, 20, Component.translatable("warpmod.edit.x"));
-		_xBox.setValue(Double.toString((int) (_warp.x() * 100) / 100d));
+		_xBox.setValue(Double.toString((int) (warp.getX() * 100) / 100d));
 		addRenderableWidget(_xBox);
 		
 		_yBox = createNumbersTextBox(font, (width / 2) - inputWidth - inputPadding, (height / 4) + 80, inputWidth, 20, Component.translatable("warpmod.edit.y"));
-		_yBox.setValue(Double.toString((int) (_warp.y() * 100) / 100d));
+		_yBox.setValue(Double.toString((int) (warp.getY() * 100) / 100d));
 		addRenderableWidget(_yBox);
 		
 		_zBox = createNumbersTextBox(font, (width / 2) - inputWidth - inputPadding, (height / 4) + 120, inputWidth, 20, Component.translatable("warpmod.edit.z"));
-		_zBox.setValue(Double.toString((int) (_warp.z() * 100) / 100d));
+		_zBox.setValue(Double.toString((int) (warp.getZ() * 100) / 100d));
 		addRenderableWidget(_zBox);
 		
 		_pitchBox = createNumbersTextBox(font, (width / 2) + inputPadding, (height / 4) + 40, inputWidth, 20, Component.translatable("warpmod.edit.pitch"));
-		_pitchBox.setValue(Double.toString((int) (_warp.pitch() * 100) / 100d));
+		_pitchBox.setValue(Double.toString((int) (warp.getPitch() * 100) / 100d));
 		addRenderableWidget(_pitchBox);
 		
 		_yawBox = createNumbersTextBox(font, (width / 2) + inputPadding, (height / 4) + 80, inputWidth, 20, Component.translatable("warpmod.edit.yaw"));
-		_yawBox.setValue(Float.toString((int) (_warp.yaw() * 10000) / 10000f));
+		_yawBox.setValue(Float.toString((int) (warp.getYaw() * 10000) / 10000f));
 		addRenderableWidget(_yawBox);
 		
 		CycleButton<Object> _dimButton = addRenderableWidget(CycleButton.builder((mode) ->
+		{
+			for (String dimension : WarpModClient.dimensions)
+			{
+				ResourceLocation dim = new ResourceLocation(dimension);
+				if (dim.toString().equals(mode))
 				{
-					for (String dimension : WarpModClient.dimensions)
-					{
-						ResourceLocation dim = new ResourceLocation(dimension);
-						if (dim.toString().equals(mode))
-						{
-							dimension = dim.toString();
-							return Component.literal(dim.getPath());
-						}
-					}
-					
-					dimension = player.level.dimension().location().toString();
-					return Component.literal(player.level.dimension().location().getPath());
-				})
-				.withValues(WarpModClient.dimensions)
-				.displayOnlyValue()
-				.withInitialValue(dimension)
-				.create((width / 2) + 20, (height / 4) + 120, inputWidth, 20, Component.translatable("warpmod.edit.dim"), (cycleButton, mode) ->
-				{
-					this.dimension = (String) mode;
-				}));
+					dimension = dim.toString();
+					return Component.literal(dim.getPath());
+				}
+			}
+			
+			dimension = player.level.dimension().location().toString();
+			return Component.literal(player.level.dimension().location().getPath());
+		}).withValues(WarpModClient.dimensions).displayOnlyValue().withInitialValue(dimension).create((width / 2) + 20, (height / 4) + 120, inputWidth, 20, Component.translatable("warpmod.edit.dim"), (cycleButton, mode) ->
+		{
+			this.dimension = (String) mode;
+		}));
 		
 		
 		_saveButton = addRenderableWidget(createButton((width / 2) - 110, height - 30, 100, 20, Component.translatable("warpmod.edit.save"), button ->
@@ -129,7 +126,7 @@ public class EditWarpScreen extends Screen
 				
 				if (_nameBox.getValue().isEmpty())
 				{
-					_nameBox.setSuggestion("Totally Cool Warp Name");
+					_nameBox.setSuggestion("Totally Cool OldWarpType Name");
 				} else
 				{
 					_nameBox.setSuggestion("");
@@ -157,20 +154,12 @@ public class EditWarpScreen extends Screen
 			
 			if (ok)
 			{
-				// Create NBT from inputs
-				CompoundTag tag = new CompoundTag();
-				tag.putString("ogName", ogName);
-				tag.putString("name", name);
-				tag.putDouble("x", x);
-				tag.putDouble("y", y);
-				tag.putDouble("z", z);
-				tag.putFloat("pitch", pitch);
-				tag.putFloat("yaw", yaw);
-				tag.putString("dim", dimension);
 				
 				// Create packet buffer and send to server
 				FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-				buf.writeNbt(tag);
+				buf.writeInt(ogName.length());
+				buf.writeCharSequence(ogName, Charset.defaultCharset());
+				buf.writeNbt(new Warp(name, x, y, z, pitch, yaw, new ResourceLocation(dimension), player).toNbt());
 				PacketSender.c2s().send(WarpNetworking.CREATE, buf);
 				
 				// Return to parent screen
@@ -201,7 +190,7 @@ public class EditWarpScreen extends Screen
 		if (_nameBox.getValue().isEmpty())
 		{
 			_saveButton.active = false;
-			_nameBox.setSuggestion("Totally Cool Warp Name");
+			_nameBox.setSuggestion("Totally Cool OldWarpType Name");
 		} else
 		{
 			_saveButton.active = true;

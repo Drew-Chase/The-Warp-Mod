@@ -6,16 +6,16 @@ It allows teleporting to various warps, This mod does NOT need to be installed c
 
 # Commands
 
-- `/warp set <name>` - *creates a warp*
-- `/warp list` - *lists all warps created*
-- `/warp back` - *when you teleport using warp a "warp back" is automatically created.*
-- `/warp random [<max>] [<min>]` - *randomly teleports the player using the max and min. by default max is **500** and
+- `/oldWarpType set <name>` - *creates a oldWarpType*
+- `/oldWarpType list` - *lists all warps created*
+- `/oldWarpType back` - *when you teleport using oldWarpType a "oldWarpType back" is automatically created.*
+- `/oldWarpType random [<max>] [<min>]` - *randomly teleports the player using the max and min. by default max is **500** and
   min is **25** blocks away.*
-- `/warp rename <old> <new> [<overwrite>]` - *renames the **old** warp name to **new**  warp name, if new warp exists
+- `/oldWarpType rename <old> <new> [<overwrite>]` - *renames the **old** oldWarpType name to **new**  oldWarpType name, if new oldWarpType exists
   overwrite will overwrite it.*
-- `/warp <name>` - *Teleports you to that warp point.*
-- `/warp spawn` - *Teleports you to spawn*
-- `/warp remove <name>` - *removes warp*
+- `/oldWarpType <name>` - *Teleports you to that oldWarpType point.*
+- `/oldWarpType spawn` - *Teleports you to spawn*
+- `/oldWarpType remove <name>` - *removes oldWarpType*
 
 # FAQ:
 

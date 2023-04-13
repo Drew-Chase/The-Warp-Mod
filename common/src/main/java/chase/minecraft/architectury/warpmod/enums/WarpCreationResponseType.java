@@ -1,4 +1,4 @@
-package chase.minecraft.architectury.warpmod.data.enums;
+package chase.minecraft.architectury.warpmod.enums;
 
 @SuppressWarnings("unused")
 public enum WarpCreationResponseType

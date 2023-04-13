@@ -1,14 +1,15 @@
-package chase.minecraft.architectury.warpmod;
+package chase.minecraft.architectury.warpmod.commands;
 
 import chase.minecraft.architectury.warpmod.data.Warp;
-import chase.minecraft.architectury.warpmod.data.WarpTravelParemeters;
 import chase.minecraft.architectury.warpmod.data.Warps;
-import chase.minecraft.architectury.warpmod.data.enums.WarpCreationResponseType;
+import chase.minecraft.architectury.warpmod.enums.WarpCreationResponseType;
 import chase.minecraft.architectury.warpmod.server.RepeatingServerTasks;
 import chase.minecraft.architectury.warpmod.server.TimedServerTask;
 import chase.minecraft.architectury.warpmod.server.TimedServerTasks;
+import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.CommandNode;
 import net.minecraft.ChatFormatting;
@@ -40,14 +41,16 @@ import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
 import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
 import static com.mojang.brigadier.arguments.IntegerArgumentType.getInteger;
 import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
-import static com.mojang.brigadier.arguments.StringArgumentType.getString;
-import static com.mojang.brigadier.arguments.StringArgumentType.string;
+import static com.mojang.brigadier.arguments.StringArgumentType.*;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 import static net.minecraft.commands.arguments.DimensionArgument.dimension;
 import static net.minecraft.commands.arguments.EntityArgument.player;
 import static net.minecraft.commands.arguments.coordinates.RotationArgument.rotation;
 
+/**
+ * Contains all commands for warps
+ */
 @SuppressWarnings("all")
 public class WarpCommand
 {
@@ -55,8 +58,9 @@ public class WarpCommand
 	
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
 	{
+		RequiredArgumentBuilder<CommandSourceStack, String> nameArg = argument("name", greedyString());
 		LiteralArgumentBuilder<CommandSourceStack> node = literal("warp")
-				.then(argument("name", string())
+				.then(nameArg
 						.requires(ctx -> ctx.hasPermission(4))
 						.suggests((ctx, s) -> Warps.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
 						.executes(ctx ->
@@ -79,7 +83,7 @@ public class WarpCommand
 						.executes(ctx -> teleportTo(ctx, EntityArgument.getPlayer(ctx, "player")) ? 1 : 0)
 				)
 				.then(literal("set")
-						.then(argument("name", string())
+						.then(nameArg
 								.suggests((ctx, s) -> Warps.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
 								.then(argument("location", Vec3Argument.vec3())
 										.then(argument("rotation", rotation())
@@ -112,7 +116,7 @@ public class WarpCommand
 								.executes(ctx -> listWarps(ctx, EntityArgument.getPlayer(ctx, "player")) ? 1 : 0))
 						.executes(ctx -> listWarps(ctx) ? 1 : 0)
 				).then(literal("remove")
-						.then(argument("name", string())
+						.then(nameArg
 								.suggests((ctx, s) -> Warps.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
 								.executes(ctx -> removeWarp(ctx, getString(ctx, "name")) ? 1 : 0)
 						)
@@ -125,9 +129,9 @@ public class WarpCommand
 						)
 						.executes(ctx -> teleportToRandom(ctx) ? 1 : 0)
 				).then(literal("rename")
-						.then(argument("old", string())
+						.then(argument("old", greedyString())
 								.suggests((ctx, s) -> Warps.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
-								.then(argument("new", string())
+								.then(argument("new", greedyString())
 										.then(argument("overwrite", bool())
 												.executes(ctx -> renameWarp(ctx, getString(ctx, "old"), getString(ctx, "new"), getBool(ctx, "overwrite")) ? 1 : 0)
 										)
@@ -138,7 +142,7 @@ public class WarpCommand
 						.executes(ctx -> teleportToSpawn(ctx) ? 1 : 0)
 				).then(literal("invite")
 						.then(argument("player", player())
-								.then(argument("warp", string())
+								.then(argument("warp", greedyString())
 										.suggests((ctx, builder) -> Warps.fromPlayer(ctx.getSource().getPlayer()).suggestions(builder))
 										.executes(ctx -> invite(ctx, getString(ctx, "warp"), EntityArgument.getPlayer(ctx, "player")) ? 1 : 0)
 								)
@@ -150,7 +154,7 @@ public class WarpCommand
 								)
 						)
 				).then(literal("travel")
-						.then(argument("warp", string())
+						.then(nameArg
 								.suggests((ctx, builder) ->
 								{
 									List<String> sug = new ArrayList<>();
@@ -160,11 +164,11 @@ public class WarpCommand
 								})
 								.then(argument("useActionBar", bool())
 										.then(argument("rate", integer(10, 500))
-												.executes(ctx -> travel(ctx, getString(ctx, "warp"), getBool(ctx, "useActionBar"), getInteger(ctx, "rate")) ? 1 : 0)
+												.executes(ctx -> travel(ctx, getString(ctx, "name"), getBool(ctx, "useActionBar"), getInteger(ctx, "rate")) ? 1 : 0)
 										)
-										.executes(ctx -> travel(ctx, getString(ctx, "warp"), getBool(ctx, "useActionBar")) ? 1 : 0)
+										.executes(ctx -> travel(ctx, getString(ctx, "name"), getBool(ctx, "useActionBar")) ? 1 : 0)
 								)
-								.executes(ctx -> travel(ctx, getString(ctx, "warp")) ? 1 : 0)
+								.executes(ctx -> travel(ctx, getString(ctx, "name")) ? 1 : 0)
 						)
 						.executes(ctx -> travel(ctx, "") ? 1 : 0)
 				);
@@ -194,7 +198,7 @@ public class WarpCommand
 				context.getSource().sendFailure(Component.literal(String.format("Warp does NOT exist: %s", name)));
 				return false;
 			}
-			warps.get(name).teleportTo();
+			warps.get(name).teleport();
 			context.getSource().sendSuccess(Component.literal(String.format("%sWarped to: %s%s", ChatFormatting.GREEN, ChatFormatting.GOLD, name)), false);
 			return true;
 		}
@@ -258,7 +262,7 @@ public class WarpCommand
 				context.getSource().sendFailure(Component.literal("Player was not found!"));
 				return false;
 			}
-			Warp.createBack(player);
+			Warps.fromPlayer(player).createBack();
 			
 			BlockPos pos = player.getLevel().getSharedSpawnPos();
 			player.teleportTo(Objects.requireNonNull(player.getServer()).overworld(), pos.getX() + .5, pos.getY(), pos.getZ() + .5, player.getYRot(), player.getXRot());
@@ -334,16 +338,8 @@ public class WarpCommand
 				context.getSource().sendFailure(Component.literal("Minimum can NOT be greater than the maximum!"));
 				return false;
 			}
-			int dist = Warp.teleportRandom(player, maxDistance, minDistance);
-			boolean success = dist != 0;
-			if (!success)
-			{
-				context.getSource().sendFailure(Component.literal("Failed to find a safe place to land."));
-			} else
-			{
-				context.getSource().sendSuccess(Component.literal(String.format("%sTeleported %s%d%s blocks away", ChatFormatting.GREEN, ChatFormatting.GOLD, dist, ChatFormatting.GREEN)), false);
-			}
-			return success;
+			
+			return WorldUtils.teleportRandom(player, minDistance, maxDistance);
 		}
 		context.getSource().sendFailure(Component.literal("Command must be run as a player."));
 		return false;
@@ -464,7 +460,7 @@ public class WarpCommand
 				context.getSource().sendFailure(Component.literal("Player was not found!"));
 				return false;
 			}
-			Warp warp = Warp.create(name, x, y, z, yaw, pitch, player, dimension, false);
+			Warp warp = new Warp(name, x, y, z, yaw, pitch, dimension.dimension().location(), player);
 			WarpCreationResponseType response = Warps.fromPlayer(player).createAddOrUpdate(warp);
 			if (response == WarpCreationResponseType.FailureDueToDuplicate)
 			{
@@ -612,7 +608,7 @@ public class WarpCommand
 			HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Warps you to %s".formatted(warp.getName())));
 			component.append(Component.literal("%s: ".formatted(warp.getName())).withStyle(style -> style.applyFormat(primary).withHoverEvent(hover).withClickEvent(click)));
 			component.append(Component.literal("%s[X: %s%d%s, Y: %s%d%s, Z: %s%d%s]".formatted(primary, secondary, (int) warp.getX(), primary, secondary, (int) warp.getY(), primary, secondary, (int) warp.getZ(), primary)));
-			component.append(Component.literal(" %sDIM: %s%s\n".formatted(primary, secondary, warp.getLevelResourceLocation().getPath())));
+			component.append(Component.literal(" %sDIM: %s%s\n".formatted(primary, secondary, warp.getDimension().getPath())));
 		}
 		context.getSource().sendSuccess(component, false);
 		return true;
@@ -642,7 +638,7 @@ public class WarpCommand
 			if (playerWarp.exists(warpName))
 			{
 				Warp warp = playerWarp.get(warpName);
-				ClickEvent click = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/warp set %s %f %f %f %f %f %s".formatted(warp.getName(), warp.getX(), warp.getY(), warp.getZ(), warp.getYaw(), warp.getPitch(), warp.getLevelResourceLocation().toString()));
+				ClickEvent click = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/warp set %s %f %f %f %f %f %s".formatted(warp.getName(), warp.getX(), warp.getY(), warp.getZ(), warp.getYaw(), warp.getPitch(), warp.getDimension().toString()));
 				HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("%sAdd warp %s%s%s to your list.".formatted(ChatFormatting.GREEN, ChatFormatting.GOLD, warpName, ChatFormatting.GREEN)));
 				Component clickText = Component.literal("[ACCEPT]").withStyle(style -> style.withColor(ChatFormatting.GOLD).withClickEvent(click).withHoverEvent(hover));
 				toPlayer.sendSystemMessage(Component.literal("You have been invited to warp ").withStyle(ChatFormatting.GREEN).append(clickText));
@@ -682,7 +678,7 @@ public class WarpCommand
 					TimedServerTask task = Objects.requireNonNull(TimedServerTasks.Instance.get(inviteCode));
 					if (!task.isCanceled())
 					{
-						Warp.createBack(toPlayer);
+						Warps.fromPlayer(toPlayer).createBack();
 						toPlayer.teleportTo(player.getLevel(), player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
 						task.cancel();
 						toPlayer.sendSystemMessage(Component.literal("%sWarped to %s%s".formatted(ChatFormatting.GREEN, ChatFormatting.GOLD, player.getDisplayName().getString())));
@@ -750,7 +746,7 @@ public class WarpCommand
 				return false;
 			}
 			
-			Warp.removeTravelBar(player);
+			WorldUtils.removeTravelBar(player);
 			
 			CustomBossEvents bossEvents = context.getSource().getServer().getCustomBossEvents();
 			ResourceLocation compassBar = new ResourceLocation("warpmod", player.getDisplayName().getString().toLowerCase().replace(" ", "_"));
@@ -786,7 +782,7 @@ public class WarpCommand
 				if (!isPlayer)
 				{
 					warp = warps.get(name);
-					diffDim = !warp.sameDimension();
+					diffDim = !warp.getDimension().equals(player.getLevel().dimension().location());
 				} else
 				{
 					warp = null;
@@ -809,20 +805,20 @@ public class WarpCommand
 				ServerPlayer finalOtherPlayer = otherPlayer;
 				RepeatingServerTasks.Instance.create(player.getDisplayName().getString(), rate, () ->
 				{
-					WarpTravelParemeters param;
+					Component compass = Component.empty();
 					if (finalIsPlayer)
-						param = Warp.calculateTravel(player, finalOtherPlayer);
+						compass = WorldUtils.calculateTravel(player, finalOtherPlayer);
 					else
-						param = warp.calculateTravel();
-					if (param.distance() > event.getMax())
+						compass = WorldUtils.calculateTravel(player, warp.getX(), warp.getY(), warp.getZ());
+					if (warp.distance() > event.getMax())
 					{
-						event.setMax(param.distance());
+						event.setMax((int) warp.distance());
 					}
-					int newDist = event.getMax() - param.distance();
+					int newDist = (int) (event.getMax() - warp.distance());
 					event.setValue(newDist < 0 ? 0 : newDist);
-					event.setName(param.direction());
+					event.setName(compass);
 					if (useActionBar)
-						player.displayClientMessage(Component.literal("%sTraveling to %s - %s%dM".formatted(ChatFormatting.GREEN, name, ChatFormatting.GOLD, param.distance())), true);
+						player.displayClientMessage(Component.literal("%sTraveling to %s - %s%dM".formatted(ChatFormatting.GREEN, name, ChatFormatting.GOLD, (int) warp.distance())), true);
 				});
 			} else
 			{

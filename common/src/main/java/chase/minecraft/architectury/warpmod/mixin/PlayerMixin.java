@@ -2,6 +2,7 @@ package chase.minecraft.architectury.warpmod.mixin;
 
 import chase.minecraft.architectury.warpmod.data.Warp;
 import chase.minecraft.architectury.warpmod.data.Warps;
+import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,36 +23,50 @@ public class PlayerMixin
 	public void addAdditionalSaveData(CompoundTag compoundTag, CallbackInfo cbi)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		compoundTag.put("warps", Warps.fromPlayer(player).toNBT());
+		compoundTag.put("warps", Warps.fromPlayer(player).toNbt());
 	}
 	
 	@Inject(at = @At("RETURN"), method = "readAdditionalSaveData")
 	public void readAdditionalSaveData(CompoundTag compoundTag, CallbackInfo cbi)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		Warps.fromPlayer(player).fromNBT(compoundTag);
+		Warps.fromPlayer(player).fromNbt(compoundTag);
 	}
 	
 	@Inject(at = @At("HEAD"), method = "changeDimension")
 	public void changeDimension(ServerLevel serverLevel, CallbackInfoReturnable<Entity> cbi)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		Warp.removeTravelBar(player);
+		WorldUtils.removeTravelBar(player);
 	}
 	
 	@Inject(at = @At("HEAD"), method = "disconnect")
 	public void disconnect(CallbackInfo cbli)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		Warp.removeTravelBar(player);
+		WorldUtils.removeTravelBar(player);
 	}
 	
 	@Inject(at = @At("HEAD"), method = "die")
 	public void die(DamageSource damageSource, CallbackInfo info)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		Warp.createBack(player);
-		Warp.removeTravelBar(player);
+		Warps.fromPlayer(player).createDeath();
+		WorldUtils.removeTravelBar(player);
+	}
+	
+	@Inject(at = @At("RETURN"), method = "tick")
+	public void tick()
+	{
+		ServerPlayer player = (ServerPlayer) ((Object) this);
+		Warps warps = Warps.fromPlayer(player);
+		for (Warp warp : warps.getWarps())
+		{
+			if (warp.temporary() && warp.distance() < 10)
+			{
+				warps.remove(warp.getName());
+			}
+		}
 	}
 	
 }

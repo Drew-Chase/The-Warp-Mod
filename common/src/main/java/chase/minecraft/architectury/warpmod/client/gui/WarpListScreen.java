@@ -1,8 +1,12 @@
 package chase.minecraft.architectury.warpmod.client.gui;
 
-import chase.minecraft.architectury.warpmod.client.gui.component.WarpList;
+import chase.minecraft.architectury.warpmod.client.gui.component.WarpListComponent;
+import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.netty.buffer.Unpooled;
+import lol.bai.badpackets.api.PacketSender;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
@@ -13,16 +17,16 @@ import static chase.minecraft.architectury.warpmod.client.gui.GUIFactory.createB
 
 @SuppressWarnings("all")
 /**
- * The WarpScreen class is a GUI screen with a list of warps and a "done" button that allows the player to navigate back to the parent screen.
+ * The WarpListScreen class is a GUI screen with a list of warps and a "done" button that allows the player to navigate back to the parent screen.
  */
-public class WarpScreen extends Screen
+public class WarpListScreen extends Screen
 {
 	
 	@Nullable
 	private final Screen _parent;
-	private WarpList _list;
+	private WarpListComponent _list;
 	
-	public WarpScreen(@Nullable Screen parent)
+	public WarpListScreen(@Nullable Screen parent)
 	{
 		super(Component.translatable("gui.warpmod.list.title"));
 		_parent = parent;
@@ -34,7 +38,8 @@ public class WarpScreen extends Screen
 	@Override
 	protected void init()
 	{
-		_list = new WarpList(this);
+		PacketSender.c2s().send(WarpNetworking.PING, new FriendlyByteBuf(Unpooled.buffer()));
+		_list = new WarpListComponent(this);
 		addWidget(_list);
 		addRenderableWidget(createButton((width / 2) - 110, height - 25, 100, 20, Component.translatable("warpmod.create"), w ->
 		{

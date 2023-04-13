@@ -1,13 +1,13 @@
 package chase.minecraft.architectury.warpmod.data;
 
 import chase.minecraft.architectury.warpmod.WarpMod;
-import chase.minecraft.architectury.warpmod.data.enums.WarpCreationResponseType;
+import chase.minecraft.architectury.warpmod.enums.WarpCreationResponseType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -18,25 +18,25 @@ import java.util.concurrent.CompletableFuture;
  */
 public class Warps
 {
-	private static HashMap<ServerPlayer, Warps> _instance;
-	private final HashMap<String, Warp> _warps;
-	private final ServerPlayer _player;
+	private static HashMap<Player, Warps> _instance;
+	private final HashMap<String, Warp> warps;
+	private final Player player;
 	
-	// This is a constructor for the Warps class that takes a ServerPlayer object as a parameter. It initializes the _player field with the passed-in player object. It also checks if the _instance HashMap is null, and if it is, it creates a new HashMap. If the _instance HashMap already contains the player object, it sets the _warps field to the _warps field of the existing Warps object associated with the player. Otherwise, it creates a new HashMap for the _warps field and adds the new Warps object to
+	// This is a constructor for the Warps class that takes a Player object as a parameter. It initializes the _player field with the passed-in player object. It also checks if the _instance HashMap is null, and if it is, it creates a new HashMap. If the _instance HashMap already contains the player object, it sets the _warps field to the _warps field of the existing Warps object associated with the player. Otherwise, it creates a new HashMap for the _warps field and adds the new Warps object to
 	// the _instance HashMap with the player object as the key.
-	private Warps(ServerPlayer player)
+	private Warps(Player player)
 	{
-		_player = player;
+		this.player = player;
 		if (_instance == null)
 		{
 			_instance = new HashMap<>();
 		}
 		if (_instance.containsKey(player))
 		{
-			_warps = _instance.get(player)._warps;
+			warps = _instance.get(player).warps;
 		} else
 		{
-			_warps = new HashMap<>();
+			warps = new HashMap<>();
 			_instance.put(player, this);
 		}
 	}
@@ -47,7 +47,7 @@ public class Warps
 	 * @param player The player who is warping.
 	 * @return A new instance of the Warps class.
 	 */
-	public static Warps fromPlayer(ServerPlayer player)
+	public static Warps fromPlayer(Player player)
 	{
 		return new Warps(player);
 	}
@@ -60,21 +60,21 @@ public class Warps
 	 */
 	public WarpCreationResponseType createAddOrUpdate(Warp warp)
 	{
-		if (_warps.containsKey(warp.getName()))
+		if (warps.containsKey(warp.getName()))
 		{
-			_warps.put(warp.getName(), warp);
+			warps.put(warp.getName(), warp);
 			return WarpCreationResponseType.Overwritten;
 		}
-		_warps.put(warp.getName(), warp);
+		warps.put(warp.getName(), warp);
 		return WarpCreationResponseType.Success;
 	}
 	
 	public void rename(String name, String new_name)
 	{
-		Warp warp = get(name);
+		Warp old = get(name);
 		remove(name);
-		warp.rename(new_name);
-		_warps.put(new_name, warp);
+		old.update(new_name, old.getX(), old.getY(), old.getZ(), old.getPitch(), old.getYaw(), old.getDimension(), old.getColor(), old.getIcon());
+		warps.put(new_name, old);
 	}
 	
 	/**
@@ -87,7 +87,7 @@ public class Warps
 	{
 		if (exists(name))
 		{
-			_warps.remove(name);
+			warps.remove(name);
 			return true;
 		}
 		return false;
@@ -100,12 +100,12 @@ public class Warps
 	 */
 	public Warp[] getWarps()
 	{
-		return _warps.values().toArray(new Warp[0]);
+		return warps.values().toArray(new Warp[0]);
 	}
 	
 	public String[] getWarpNames()
 	{
-		return _warps.keySet().toArray(new String[0]);
+		return warps.keySet().toArray(new String[0]);
 	}
 	
 	/**
@@ -119,7 +119,7 @@ public class Warps
 	 */
 	public CompletableFuture<Suggestions> suggestions(SuggestionsBuilder builder)
 	{
-		return SharedSuggestionProvider.suggest(_warps.keySet(), builder);
+		return SharedSuggestionProvider.suggest(warps.keySet(), builder);
 	}
 	
 	/**
@@ -130,7 +130,7 @@ public class Warps
 	 */
 	public Warp get(String name)
 	{
-		return _warps.get(name);
+		return warps.get(name);
 	}
 	
 	/**
@@ -141,7 +141,7 @@ public class Warps
 	 */
 	public boolean exists(String name)
 	{
-		return _warps.containsKey(name);
+		return warps.containsKey(name);
 	}
 	
 	/**
@@ -149,12 +149,12 @@ public class Warps
 	 *
 	 * @return NBTData
 	 */
-	public ListTag toNBT()
+	public ListTag toNbt()
 	{
 		ListTag listTag = new ListTag();
-		for (Warp warp : _warps.values())
+		for (Warp warp : warps.values())
 		{
-			listTag.add(warp.toNBT());
+			listTag.add(warp.toNbt());
 		}
 		return listTag;
 	}
@@ -164,24 +164,40 @@ public class Warps
 	 *
 	 * @param tag the players nbt
 	 */
-	public void fromNBT(CompoundTag tag)
+	public void fromNbt(CompoundTag tag)
 	{
-		_warps.clear();
+		warps.clear();
 		try
 		{
 			ListTag listTag = tag.getList("warps", CompoundTag.TAG_COMPOUND);
-			WarpMod.log.info(String.format("Loading NBT for player: %s - %d", _player.getDisplayName().getString(), listTag.size()));
+			WarpMod.log.info(String.format("Loading NBT for player: %s - %d", player.getDisplayName().getString(), listTag.size()));
 			for (int i = 0; i < listTag.size(); i++)
 			{
-				CompoundTag ct = listTag.getCompound(i);
-				Warp warp = Warp.fromTag(ct, _player);
-				_warps.put(warp.getName(), warp);
+				CompoundTag item = listTag.getCompound(i);
+				Warp warp = Warp.fromTag(item, player);
+				warps.put(warp.getName(), warp);
 			}
 		} catch (Exception e)
 		{
 			WarpMod.log.error(String.format("Unable to load Player Warp NBT: %s", e.getMessage()));
 		}
-		WarpMod.log.info(String.format("%d Warps found for %s", _warps.size(), _player.getDisplayName().getString()));
+		WarpMod.log.info(String.format("%d Warps found for %s", warps.size(), player.getDisplayName().getString()));
+	}
+	
+	/**
+	 * Creates a back warp
+	 */
+	public void createBack()
+	{
+		createAddOrUpdate(new Warp("back", player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player, false, WaypointIcons.TELEPORT, 0xFF_FF_FF));
+	}
+	
+	/**
+	 * Creates a death warp
+	 */
+	public void createDeath()
+	{
+		createAddOrUpdate(new Warp("death.%d".formatted(System.currentTimeMillis()), player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player, true, WaypointIcons.DEATH, 0xFF_00_00));
 	}
 	
 }

@@ -16,12 +16,17 @@ public abstract class WarpModClient
 	
 	@NotNull
 	public static String[] dimensions = {"ERROR"};
+	public static boolean onServer = false;
+	public static boolean isOP = false;
+	public static String remoteVersion = "";
 	
+	/**
+	 * Initializes the client
+	 */
 	public static void init()
 	{
 		initKeyBindings();
 		ClientNetworking.init();
-		
 	}
 	
 	/**
@@ -46,14 +51,23 @@ public abstract class WarpModClient
 		}
 	}
 	
+	/**
+	 * Runs when logging in to a server.
+	 *
+	 * @param connection
+	 */
 	protected static void onServerLogin(Connection connection)
 	{
+		FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
 		PacketSender.c2s().send(WarpNetworking.LIST, new FriendlyByteBuf(Unpooled.buffer()));
 		PacketSender.c2s().send(WarpNetworking.DIMENSIONS, new FriendlyByteBuf(Unpooled.buffer()));
+		data.writeBoolean(true);
+		PacketSender.c2s().send(WarpNetworking.PING, data);
 	}
 	
 	protected static void onServerLogout(Connection connection)
 	{
+	
 	}
 	
 	
