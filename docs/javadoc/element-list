@@ -1,0 +1,13 @@
+chase.minecraft.architectury.warpmod
+chase.minecraft.architectury.warpmod.client
+chase.minecraft.architectury.warpmod.client.gui
+chase.minecraft.architectury.warpmod.client.gui.component
+chase.minecraft.architectury.warpmod.client.gui.waypoint
+chase.minecraft.architectury.warpmod.client.renderer
+chase.minecraft.architectury.warpmod.commands
+chase.minecraft.architectury.warpmod.data
+chase.minecraft.architectury.warpmod.enums
+chase.minecraft.architectury.warpmod.mixin
+chase.minecraft.architectury.warpmod.networking
+chase.minecraft.architectury.warpmod.server
+chase.minecraft.architectury.warpmod.utils
