@@ -2,8 +2,11 @@
   "key.categories.warpmod": "Warp Mod",
   "key.warpmod.open_warps_screen": "Open Warps Menu",
   "key.warpmod.open_create_warps_screen": "Create Warp",
+  "key.warpmod.open_player_list_screen": "Open Warps Player Options",
   "gui.warpmod.list.title": "Warps",
+  "gui.warpmod.list.players.title": "Players",
   "warpmod.teleport": "Teleport",
+  "warpmod.track": "Track",
   "warpmod.remove": "Remove",
   "warpmod.edit": "Edit",
   "warpmod.edit.title": "Edit Warp",
@@ -16,5 +19,7 @@
   "warpmod.edit.yaw": "Yaw",
   "warpmod.edit.rgb": "RGB",
   "warpmod.edit.dim": "Dimension",
+  "warpmod.edit.icon": "Icon",
+  "warpmod.edit.color": "Color",
   "warpmod.edit.save": "Save"
 }
