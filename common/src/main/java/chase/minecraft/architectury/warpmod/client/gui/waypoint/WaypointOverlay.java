@@ -5,9 +5,11 @@ import chase.minecraft.architectury.warpmod.data.Warp;
 import chase.minecraft.architectury.warpmod.data.WaypointIcons;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +18,7 @@ import org.joml.Vector3d;
 @SuppressWarnings("all")
 public class WaypointOverlay extends GuiComponent
 {
-	
+	private int currentSize = WaypointIcons.SIZE;
 	@NotNull
 	private final Minecraft minecraft;
 	private EntityRenderDispatcher renderManager;
@@ -43,25 +45,28 @@ public class WaypointOverlay extends GuiComponent
 	{
 		Vector3d warpPos = new Vector3d(warp.getX(), warp.getY(), warp.getZ());
 		Vector3d screenSpace = RenderUtils.worldSpaceToScreenSpace(warpPos);
-		boolean isVisible = RenderUtils.screenSpaceCoordinateIsVisible(screenSpace);
+		ResourceLocation warpDim = warp.getDimension();
+		ResourceLocation playerDim = minecraft.player.level.dimension().location();
+		boolean isVisible = warpDim.equals(playerDim) && RenderUtils.screenSpaceCoordinateIsVisible(screenSpace);
 		distanceToWarp = minecraft.getEntityRenderDispatcher().camera.getPosition().distanceTo(new Vec3(warp.getX(), warp.getY(), warp.getZ()));
 		
-		color = warp.getColor();
+		color = warp.getColor().getColor();
 		if (isVisible)
 		{
-			float scale = calcScale();
-			int x = (int) (screenSpace.x - (WaypointIcons.SIZE / 2));
-			int y = (int) (screenSpace.y - ((WaypointIcons.SIZE / 2) + minecraft.font.lineHeight + 20));
+			int x = (int) (screenSpace.x - (currentSize / 2));
+			int y = (int) (screenSpace.y - ((currentSize / 2) + minecraft.font.lineHeight + 20));
 			
 			poseStack.pushPose();
-//			poseStack.scale(scale, scale, scale);
 			r = FastColor.ARGB32.red(color) / 255f;
 			g = FastColor.ARGB32.green(color) / 255f;
 			b = FastColor.ARGB32.blue(color) / 255f;
 			RenderSystem.disableDepthTest();
 			RenderSystem.depthMask(false);
 			RenderSystem.setShaderColor(r, g, b, 1f);
-			RenderSystem.setShaderTexture(0, warp.getIcon());
+			if (warp.getIcon() == null)
+				RenderSystem.setShaderTexture(0, WaypointIcons.DEFAULT);
+			else
+				RenderSystem.setShaderTexture(0, warp.getIcon());
 			
 			renderIcon(poseStack, x, y);
 			renderLabel(poseStack, x, y);
@@ -82,7 +87,10 @@ public class WaypointOverlay extends GuiComponent
 	 */
 	private void renderIcon(PoseStack poseStack, int x, int y)
 	{
-		blit(poseStack, x, y, 0, 0, WaypointIcons.SIZE, WaypointIcons.SIZE, WaypointIcons.SIZE, WaypointIcons.SIZE);
+		poseStack.pushPose();
+		calcScale();
+		blit(poseStack, x + ((WaypointIcons.SIZE - currentSize) / 2), y + (WaypointIcons.SIZE - currentSize), 0, 0, currentSize, currentSize, currentSize, currentSize);
+		poseStack.popPose();
 	}
 	
 	/**
@@ -98,7 +106,7 @@ public class WaypointOverlay extends GuiComponent
 		renderLabelBackground(poseStack, x, y, minecraft.font.width(text));
 		
 		// Draws Text
-		drawCenteredString(poseStack, minecraft.font, text, x + 16, y + 32 + 5, color);
+		drawCenteredString(poseStack, minecraft.font, text, x + WaypointIcons.SIZE / 2, y + WaypointIcons.SIZE + 5, color);
 	}
 	
 	/**
@@ -113,10 +121,16 @@ public class WaypointOverlay extends GuiComponent
 	{
 		// Draw Background
 		final int padding = 5;
-		RenderSystem.setShaderColor(0f, 0f, 0f, .5f);
+		if (warp.getColor() == ChatFormatting.BLACK)
+		{
+			RenderSystem.setShaderColor(1f, 1f, 1f, .5f);
+		} else
+		{
+			RenderSystem.setShaderColor(0f, 0f, 0f, .5f);
+		}
 		int startX = x - (padding + (textWidth / 2)) + (WaypointIcons.SIZE / 2);
-		int endX = startX + (padding * 2) + textWidth;
-		fill(poseStack, startX, y + 32, endX, y + 32 + minecraft.font.lineHeight + 10, -0x00_00_00_FF);
+		int endX = (int) (startX + (padding * 2) + textWidth);
+		fill(poseStack, startX, y + WaypointIcons.SIZE, endX, y + WaypointIcons.SIZE + minecraft.font.lineHeight + 10, -0x00_00_00_FF);
 		RenderSystem.setShaderColor(r, g, b, 1f);
 	}
 	
@@ -125,12 +139,17 @@ public class WaypointOverlay extends GuiComponent
 	 *
 	 * @return The method `calcScale()` returns a `float` value which represents the calculated scale based on the distance to a warp and a maximum render distance.
 	 */
-	private float calcScale()
+	private void calcScale()
 	{
-		double maxRenderDistance = 100;
-		double distancePercentage = Math.abs(distanceToWarp / maxRenderDistance - 1);
-		float minScale = .7f;
-		return (float) (distancePercentage < minScale ? minScale : distancePercentage);
+		int maxDistance = 100;
+		int minSize = 16;
+		int maxSize = WaypointIcons.SIZE;
+		if (distanceToWarp > maxDistance)
+			currentSize = minSize;
+		else
+		{
+			currentSize = (int) (maxSize - ((maxSize - minSize) * (distanceToWarp / maxDistance)));
+		}
 	}
 	
 	/**
