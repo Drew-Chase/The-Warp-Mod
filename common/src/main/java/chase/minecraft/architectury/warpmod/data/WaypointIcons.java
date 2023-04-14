@@ -3,12 +3,15 @@ package chase.minecraft.architectury.warpmod.data;
 import chase.minecraft.architectury.warpmod.WarpMod;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The WaypointIcons class contains static ResourceLocation objects representing different icons and a method to return an immutable list of these icons.
  */
 public class WaypointIcons
 {
+	private static String[] names = new String[0];
+	private static ResourceLocation[] icons = new ResourceLocation[0];
 	public static final int SIZE = 32;
 	public static final ResourceLocation DEFAULT = id("default");
 	public static final ResourceLocation HOME = id("home");
@@ -36,16 +39,52 @@ public class WaypointIcons
 	 *
 	 * @return An immutable list of ResourceLocation objects. The list contains six ResourceLocation objects representing different icons.
 	 */
-	public static ImmutableList<ResourceLocation> icons()
+	public static ResourceLocation[] icons()
 	{
-		return ImmutableList.of(
+		if (icons.length != 0)
+			return icons;
+		icons = ImmutableList.of(
 				DEFAULT,
 				HOME,
 				BOOKMARK,
 				STORAGE,
 				DEATH,
 				TELEPORT
-		);
+		).toArray(ResourceLocation[]::new);
+		return icons;
+	}
+	
+	public static String[] names()
+	{
+		if (names.length != 0)
+			return names;
+		
+		names = new String[icons().length];
+		ResourceLocation[] icons = icons();
+		for (int i = 0; i < names.length; i++)
+		{
+			names[i] = getName(icons[i]);
+		}
+		
+		return names;
+	}
+	
+	public static String getName(ResourceLocation icon)
+	{
+		String[] icons = icon.getPath().split("/");
+		return icons[icons.length - 1].replace(".png", "").toUpperCase();
+	}
+	
+	@Nullable
+	public static ResourceLocation getByName(String name)
+	{
+		for (ResourceLocation loc : icons())
+		{
+			if (getName(loc).equalsIgnoreCase(name))
+				return loc;
+		}
+		
+		return null;
 	}
 	
 }
