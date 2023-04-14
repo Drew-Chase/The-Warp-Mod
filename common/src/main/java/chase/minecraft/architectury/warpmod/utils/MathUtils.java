@@ -1,8 +1,11 @@
 package chase.minecraft.architectury.warpmod.utils;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -13,7 +16,7 @@ public class MathUtils
 	/**
 	 * The function rounds a given double value to a specified number of decimal places.
 	 *
-	 * @param from The number that needs to be rounded to a certain number of decimal places.
+	 * @param from     The number that needs to be rounded to a certain number of decimal places.
 	 * @param decimals The number of decimal places to round the input number to.
 	 * @return The method is returning a double value that is rounded to the specified number of decimal places.
 	 */
@@ -25,7 +28,7 @@ public class MathUtils
 	/**
 	 * The function rounds a given float number to a specified number of decimal places.
 	 *
-	 * @param from The number that needs to be rounded to a certain number of decimal places.
+	 * @param from     The number that needs to be rounded to a certain number of decimal places.
 	 * @param decimals The number of decimal places to round the float value to.
 	 * @return The method is returning a float value that is rounded to the specified number of decimal places.
 	 */
@@ -38,7 +41,7 @@ public class MathUtils
 	 * The function returns a random 2D position within a specified range around a given center point.
 	 *
 	 * @param center A Vec3 object representing the center point of the 2D space from which a random position will be generated.
-	 * @param max The maximum distance from the center point in the x and y directions that the random 2D position can be generated.
+	 * @param max    The maximum distance from the center point in the x and y directions that the random 2D position can be generated.
 	 * @return The method is returning a 2D vector position (Vec2) that is randomly generated within a certain range (specified by the "max" parameter) around a given 3D center point (specified by the "center" parameter). The method is using another method called "getRandom2DPosition" with additional parameters to generate the random position.
 	 */
 	public static Vec2 getRandom2DPosition(Vec3 center, int max)
@@ -50,8 +53,8 @@ public class MathUtils
 	 * This function returns a random 2D position within a given range around a center point in 3D space.
 	 *
 	 * @param center A Vec3 object representing the center point of the 2D space from which a random position will be generated.
-	 * @param min The minimum distance from the center in the x and y directions for the random 2D position.
-	 * @param max The maximum distance from the center in the x and y directions to generate a random 2D position.
+	 * @param min    The minimum distance from the center in the x and y directions for the random 2D position.
+	 * @param max    The maximum distance from the center in the x and y directions to generate a random 2D position.
 	 * @return The method is returning a 2D vector (Vec2) representing a random position within a specified range (min to max) around a given center point (Vec3). The fourth parameter (true) indicates whether the position should be restricted to within a circle centered at the given center point.
 	 */
 	public static Vec2 getRandom2DPosition(Vec3 center, int min, int max)
@@ -62,9 +65,9 @@ public class MathUtils
 	/**
 	 * This function generates a random 2D position around a given center point within a specified range, with the option to include negative values.
 	 *
-	 * @param center A Vec3 object representing the center point around which the random 2D position will be generated.
-	 * @param min The minimum value for the x and y coordinates of the generated random position.
-	 * @param max The maximum value for the randomly generated x and y coordinates.
+	 * @param center          A Vec3 object representing the center point around which the random 2D position will be generated.
+	 * @param min             The minimum value for the x and y coordinates of the generated random position.
+	 * @param max             The maximum value for the randomly generated x and y coordinates.
 	 * @param includeNegative A boolean value that determines whether the generated x and y values can be negative or not. If set to true, the generated values can be negative. If set to false, the generated values will always be positive.
 	 * @return A Vec2 object representing a randomly generated 2D position around a given center point, with the x and y coordinates determined by a random integer between a given minimum and maximum value, and the option to include negative values.
 	 */
@@ -85,6 +88,31 @@ public class MathUtils
 		if (negY)
 			y *= -1;
 		return new Vec2((float) (center.x + x), (float) (center.y + y));
+	}
+	
+	public static ChatFormatting[] getColors()
+	{
+		String[] colors = ChatFormatting.getNames(true, false).toArray(String[]::new);
+		List<ChatFormatting> items = new ArrayList<>();
+		for (String color : colors)
+		{
+			ChatFormatting c = ChatFormatting.getByName(color);
+			assert c != null;
+			if (c.isColor())
+				items.add(c);
+		}
+		return items.toArray(ChatFormatting[]::new);
+	}
+	
+	public static String[] getColorNames()
+	{
+		ChatFormatting[] colors = getColors();
+		String[] names = new String[colors.length];
+		for (int i = 0; i < names.length; i++)
+		{
+			names[i] = colors[i].getName();
+		}
+		return names;
 	}
 	
 }
