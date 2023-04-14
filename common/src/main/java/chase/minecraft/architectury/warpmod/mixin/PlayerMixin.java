@@ -56,7 +56,7 @@ public class PlayerMixin
 	}
 	
 	@Inject(at = @At("RETURN"), method = "tick")
-	public void tick()
+	public void tick(CallbackInfo cb)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
 		Warps warps = Warps.fromPlayer(player);
