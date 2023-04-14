@@ -198,7 +198,7 @@ public class WarpCommand
 				context.getSource().sendFailure(Component.literal(String.format("Warp does NOT exist: %s", name)));
 				return false;
 			}
-			warps.get(name).teleport();
+			warps.get(name).teleport(true);
 			context.getSource().sendSuccess(Component.literal(String.format("%sWarped to: %s%s", ChatFormatting.GREEN, ChatFormatting.GOLD, name)), false);
 			return true;
 		}

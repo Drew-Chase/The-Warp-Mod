@@ -4,6 +4,7 @@ import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.PacketSender;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -11,6 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
@@ -24,26 +26,26 @@ public class Warp
 	private String name;
 	private double x, y, z;
 	private float pitch, yaw;
-	private int color;
+	private ChatFormatting color = ChatFormatting.WHITE;
 	private ResourceLocation dimension;
 	private final Player player;
-	private ResourceLocation icon;
+	private ResourceLocation icon = WaypointIcons.DEFAULT;
 	private boolean temporary = false;
 	public static Warp EMPTY = new Warp("", 0, 0, 0, 0, 0, new ResourceLocation("overworld"), null);
 	
 	
 	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player)
 	{
-		this(name, x, y, z, pitch, yaw, dimension, player, false, WaypointIcons.DEFAULT, 0xFF_FF_FF);
+		this(name, x, y, z, pitch, yaw, dimension, player, false, WaypointIcons.DEFAULT, ChatFormatting.WHITE);
 	}
 	
 	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary)
 	{
-		this(name, x, y, z, pitch, yaw, dimension, player, temporary, WaypointIcons.DEFAULT, 0xFF_FF_FF);
+		this(name, x, y, z, pitch, yaw, dimension, player, temporary, WaypointIcons.DEFAULT, ChatFormatting.WHITE);
 	}
 	
 	
-	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary, ResourceLocation icon, int color)
+	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary, ResourceLocation icon, ChatFormatting color)
 	{
 		this.name = name;
 		this.x = x;
@@ -54,6 +56,8 @@ public class Warp
 		this.dimension = dimension;
 		this.player = player;
 		this.temporary = temporary;
+		this.icon = icon;
+		this.color = color;
 	}
 	
 	/**
@@ -109,7 +113,8 @@ public class Warp
 	 *
 	 * @return
 	 */
-	public int getColor()
+	@NotNull
+	public ChatFormatting getColor()
 	{
 		return color;
 	}
@@ -183,7 +188,7 @@ public class Warp
 	 * @param color     The color of the waypoint in RGB format. If no color is specified, it defaults to white (0xFF_FF_FF).
 	 * @param icon      The icon parameter is a ResourceLocation object that represents the location of the icon image file for the waypoint. If no icon is specified, it will default to the WaypointIcons.DEFAULT image.
 	 */
-	public void update(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, @Nullable Integer color, @Nullable ResourceLocation icon)
+	public void update(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, @Nullable ChatFormatting color, @Nullable ResourceLocation icon)
 	{
 		this.name = name;
 		this.x = x;
@@ -192,7 +197,7 @@ public class Warp
 		this.pitch = pitch;
 		this.yaw = yaw;
 		this.dimension = dimension;
-		this.color = color == null ? 0xFF_FF_FF : color;
+		this.color = color == null ? ChatFormatting.WHITE : color;
 		this.icon = icon == null ? WaypointIcons.DEFAULT : icon;
 	}
 	
@@ -230,16 +235,9 @@ public class Warp
 	/**
 	 * This function teleports the player to the warp location
 	 */
-	public void teleport()
+	public void teleport(boolean fromServer)
 	{
-		if (player.isLocalPlayer())
-		{
-			FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
-			FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-			buf.writeInt(name.length());
-			buf.writeCharSequence(name, Charset.defaultCharset());
-			PacketSender.c2s().send(WarpNetworking.TELEPORT, data);
-		} else
+		if (fromServer)
 		{
 			ServerPlayer player = (ServerPlayer) this.player;
 			ServerLevel level = WorldUtils.getLevelFromID(player.server, dimension);
@@ -247,6 +245,12 @@ public class Warp
 			{
 				player.teleportTo(level, x, y, z, pitch, yaw);
 			}
+		} else
+		{
+			FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
+			data.writeInt(name.length());
+			data.writeCharSequence(name, Charset.defaultCharset());
+			PacketSender.c2s().send(WarpNetworking.TELEPORT, data);
 		}
 	}
 	
@@ -265,7 +269,7 @@ public class Warp
 		tag.putFloat("pitch", pitch);
 		tag.putFloat("yaw", yaw);
 		tag.putString("dimension", dimension.toString());
-		tag.putInt("color", color);
+		tag.putString("color", color.getName());
 		tag.putString("icon", icon.toString());
 		tag.putBoolean("temp", temporary);
 		return tag;
@@ -286,9 +290,17 @@ public class Warp
 		double z = tag.getDouble("z");
 		float yaw = tag.getFloat("yaw");
 		float pitch = tag.getFloat("pitch");
-		int color = tag.getInt("color");
+		ChatFormatting color = ChatFormatting.WHITE;
+		if (tag.contains("color"))
+		{
+			color = ChatFormatting.getByName(tag.getString("color"));
+			if (color == null)
+				color = ChatFormatting.WHITE;
+		}
 		boolean temp = tag.getBoolean("temp");
 		ResourceLocation icon = new ResourceLocation(tag.getString("icon"));
+		if (icon == null)
+			icon = WaypointIcons.DEFAULT;
 		ResourceLocation dimension = new ResourceLocation(tag.getString("dimension"));
 		return new Warp(name, x, y, z, yaw, pitch, dimension, player, temp, icon, color);
 		
