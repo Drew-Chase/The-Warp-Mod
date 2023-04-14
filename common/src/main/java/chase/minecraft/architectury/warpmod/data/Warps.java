@@ -4,6 +4,7 @@ import chase.minecraft.architectury.warpmod.WarpMod;
 import chase.minecraft.architectury.warpmod.enums.WarpCreationResponseType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -189,7 +190,7 @@ public class Warps
 	 */
 	public void createBack()
 	{
-		createAddOrUpdate(new Warp("back", player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player, false, WaypointIcons.TELEPORT, 0xFF_FF_FF));
+		createAddOrUpdate(new Warp("back", player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player, false, WaypointIcons.TELEPORT, ChatFormatting.WHITE));
 	}
 	
 	/**
@@ -197,7 +198,7 @@ public class Warps
 	 */
 	public void createDeath()
 	{
-		createAddOrUpdate(new Warp("death.%d".formatted(System.currentTimeMillis()), player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player, true, WaypointIcons.DEATH, 0xFF_00_00));
+		createAddOrUpdate(new Warp("death.%d".formatted(System.currentTimeMillis()), player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player, true, WaypointIcons.DEATH, ChatFormatting.RED));
 	}
 	
 }
