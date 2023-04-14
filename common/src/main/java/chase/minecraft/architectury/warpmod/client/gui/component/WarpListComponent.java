@@ -1,8 +1,7 @@
 package chase.minecraft.architectury.warpmod.client.gui.component;
 
 import chase.minecraft.architectury.warpmod.client.WarpModClient;
-import chase.minecraft.architectury.warpmod.client.gui.EditWarpScreen;
-import chase.minecraft.architectury.warpmod.client.gui.WarpListScreen;
+import chase.minecraft.architectury.warpmod.client.gui.screen.EditWarpScreen;
 import chase.minecraft.architectury.warpmod.data.Warp;
 import chase.minecraft.architectury.warpmod.data.Warps;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
@@ -17,6 +16,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -30,12 +30,12 @@ import static chase.minecraft.architectury.warpmod.client.gui.GUIFactory.createB
 @Environment(EnvType.CLIENT)
 public class WarpListComponent extends ContainerObjectSelectionList<WarpListComponent.Entry>
 {
-	private final WarpListScreen _parent;
+	private final Screen parent;
 	
-	public WarpListComponent(WarpListScreen parent)
+	public WarpListComponent(Screen parent)
 	{
 		super(Minecraft.getInstance(), (int) (parent.width), parent.height + 15, 30, parent.height - 32, 30);
-		_parent = parent;
+		this.parent = parent;
 		Player player = this.minecraft.player;
 		if (PacketSender.c2s().canSend(WarpNetworking.LIST))
 		{
@@ -94,16 +94,11 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 					{
 						if (WarpModClient.onServer)
 						{
-							
-							FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-							buf.writeInt(warp.getName().length());
-							buf.writeCharSequence(warp.getName(), Charset.defaultCharset());
-							PacketSender.c2s().send(WarpNetworking.TELEPORT, buf);
-							minecraft.setScreen(null);
+							warp.teleport(false);
 						} else
 						{
 							assert Minecraft.getInstance().player != null;
-							Minecraft.getInstance().player.connection.sendCommand("execute");
+							Minecraft.getInstance().player.connection.sendCommand("execute in %s run tp @s %f %f %f %f %f".formatted(warp.getDimension().toString(), warp.getX(), warp.getY(), warp.getZ(), warp.getPitch(), warp.getYaw()));
 						}
 					}),
 					
@@ -121,7 +116,7 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 					}),
 					createButton(0, 0, 50, 20, Component.translatable("warpmod.edit"), button ->
 					{
-						minecraft.setScreen(new EditWarpScreen(WarpListComponent.this._parent, this.warp));
+						minecraft.setScreen(new EditWarpScreen(WarpListComponent.this.parent, this.warp));
 					}));
 			
 			
@@ -140,7 +135,8 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 			// Render Buttons
 			int buttonPadding = 4;
 			int buttonLastX = widgetWidth;
-			buttons.get(0).active = !WarpModClient.isOP;
+			if (!minecraft.isSingleplayer())
+				buttons.get(0).active = !WarpModClient.isOP;
 			for (int i = 0; i < buttons.size(); i++)
 			{
 				Button button = buttons.get(i);
