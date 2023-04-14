@@ -3,8 +3,13 @@ package chase.minecraft.architectury.warpmod.client.gui;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class GUIFactory
 {
@@ -27,12 +32,12 @@ public class GUIFactory
 	/**
 	 * This function creates an EditBox object with specified font, position, size, and label.
 	 *
-	 * @param font The font to be used for the text in the EditBox.
-	 * @param x The x-coordinate of the top-left corner of the text box.
-	 * @param y The y-coordinate of the top-left corner of the text box on the screen.
-	 * @param width The width parameter specifies the width of the EditBox component in pixels.
+	 * @param font   The font to be used for the text in the EditBox.
+	 * @param x      The x-coordinate of the top-left corner of the text box.
+	 * @param y      The y-coordinate of the top-left corner of the text box on the screen.
+	 * @param width  The width parameter specifies the width of the EditBox component in pixels.
 	 * @param height The height parameter specifies the height of the EditBox component in pixels.
-	 * @param label The label parameter is a Component object that represents the label or caption for the EditBox. It could be a text label or an icon that provides context or instructions for the user.
+	 * @param label  The label parameter is a Component object that represents the label or caption for the EditBox. It could be a text label or an icon that provides context or instructions for the user.
 	 * @return An instance of the EditBox class is being returned.
 	 */
 	public static EditBox createTextBox(Font font, int x, int y, int width, int height, Component label)
@@ -43,12 +48,12 @@ public class GUIFactory
 	/**
 	 * This function creates an EditBox for entering numbers with a filter to only allow numeric input.
 	 *
-	 * @param font The font to be used for the text in the EditBox.
-	 * @param x The x-coordinate of the top-left corner of the text box.
-	 * @param y The parameter "y" represents the vertical position of the EditBox on the screen or component. It is usually measured in pixels from the top of the screen or component.
-	 * @param width The width parameter specifies the width of the EditBox in pixels.
+	 * @param font   The font to be used for the text in the EditBox.
+	 * @param x      The x-coordinate of the top-left corner of the text box.
+	 * @param y      The parameter "y" represents the vertical position of the EditBox on the screen or component. It is usually measured in pixels from the top of the screen or component.
+	 * @param width  The width parameter specifies the width of the EditBox in pixels.
 	 * @param height The height parameter is the height of the EditBox component being created.
-	 * @param label The label parameter is a Component object that represents the label associated with the EditBox. It could be a JLabel or any other type of Component that can be added to a container.
+	 * @param label  The label parameter is a Component object that represents the label associated with the EditBox. It could be a JLabel or any other type of Component that can be added to a container.
 	 * @return The method is returning an instance of the EditBox class with a filter that only allows input of numbers (as a string).
 	 */
 	public static EditBox createNumbersTextBox(Font font, int x, int y, int width, int height, Component label)
@@ -68,6 +73,22 @@ public class GUIFactory
 			}
 		});
 		return box;
+	}
+	
+	public static CycleButton<Object> createCycleButton(Component label, int x, int y, int width, int height, String initialValue, String[] values, Component tooltip, Consumer<String> onValueChange, Function<String, Component> onUpdateLabel)
+	{
+		CycleButton.Builder<Object> builder = CycleButton.builder(mode -> onUpdateLabel.apply((String) mode));
+		builder.withValues(values);
+		builder.displayOnlyValue();
+		builder.withInitialValue(initialValue);
+		CycleButton<Object> button = builder.create(x, y, width, height, Component.translatable("warpmod.edit.icon"), (cycleButton, mode) ->
+		{
+			onValueChange.accept((String) mode);
+		});
+		
+		button.setTooltip(Tooltip.create(tooltip));
+		button.setTooltipDelay(0);
+		return button;
 	}
 	
 }
