@@ -1,7 +1,7 @@
 package chase.minecraft.architectury.warpmod.networking;
 
 import chase.minecraft.architectury.warpmod.client.WarpModClient;
-import chase.minecraft.architectury.warpmod.client.gui.WarpListScreen;
+import chase.minecraft.architectury.warpmod.client.gui.screen.WarpListScreen;
 import chase.minecraft.architectury.warpmod.data.Warps;
 import lol.bai.badpackets.api.S2CPacketReceiver;
 import net.minecraft.nbt.CompoundTag;

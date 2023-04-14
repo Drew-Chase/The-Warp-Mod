@@ -1,4 +1,4 @@
-package chase.minecraft.architectury.warpmod.client.gui;
+package chase.minecraft.architectury.warpmod.client.gui.screen;
 
 import chase.minecraft.architectury.warpmod.client.gui.component.WarpListComponent;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
@@ -24,7 +24,7 @@ public class WarpListScreen extends Screen
 	
 	@Nullable
 	private final Screen _parent;
-	private WarpListComponent _list;
+	private WarpListComponent warpListComponent;
 	
 	public WarpListScreen(@Nullable Screen parent)
 	{
@@ -39,8 +39,7 @@ public class WarpListScreen extends Screen
 	protected void init()
 	{
 		PacketSender.c2s().send(WarpNetworking.PING, new FriendlyByteBuf(Unpooled.buffer()));
-		_list = new WarpListComponent(this);
-		addWidget(_list);
+		warpListComponent = addWidget(new WarpListComponent(this));
 		addRenderableWidget(createButton((width / 2) - 110, height - 25, 100, 20, Component.translatable("warpmod.create"), w ->
 		{
 			minecraft.setScreen(new EditWarpScreen(this));
@@ -63,15 +62,15 @@ public class WarpListScreen extends Screen
 	public void render(@NotNull PoseStack poseStack, int x, int y, float partialTicks)
 	{
 		renderBackground(poseStack);
-		_list.render(poseStack, x, y, partialTicks);
-		drawCenteredString(poseStack, font, title.getString(), width / 2, font.lineHeight, 0xff_ff_ff);
+		warpListComponent.render(poseStack, x, y, partialTicks);
+		drawCenteredString(poseStack, font, title.getString(), (width / 2) - (font.width(title.getString()) / 2), font.lineHeight, 0xff_ff_ff);
 		super.render(poseStack, x, y, partialTicks);
 	}
 	
 	public void refresh()
 	{
-		if (_list != null)
-			_list.refreshEntries();
+		if (warpListComponent != null)
+			warpListComponent.refreshEntries();
 	}
 	
 }
