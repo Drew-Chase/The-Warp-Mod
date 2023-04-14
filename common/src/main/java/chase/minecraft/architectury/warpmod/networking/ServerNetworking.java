@@ -42,7 +42,7 @@ public class ServerNetworking extends WarpNetworking
 				Warps warps = Warps.fromPlayer(player);
 				if (warps.exists(name))
 				{
-					warps.get(name).teleport();
+					warps.get(name).teleport(true);
 				}
 			}
 		});
@@ -70,7 +70,6 @@ public class ServerNetworking extends WarpNetworking
 				}
 			} else
 			{
-				warps.remove(ogName);
 				warps.createAddOrUpdate(warp);
 			}
 		});
@@ -104,7 +103,7 @@ public class ServerNetworking extends WarpNetworking
 			{
 				if (buf.readBoolean())
 				{
-					player.sendSystemMessage(Component.literal("%sThe OldWarpType Mod%s version %s%s%s is installed on the server!".formatted(ChatFormatting.GOLD, ChatFormatting.GREEN, ChatFormatting.GOLD, version, ChatFormatting.GREEN)));
+					player.sendSystemMessage(Component.literal("%sThe Warp Mod%s version %s%s%s is installed on the server!".formatted(ChatFormatting.GOLD, ChatFormatting.GREEN, ChatFormatting.GOLD, version, ChatFormatting.GREEN)));
 				}
 			} catch (Exception e)
 			{
