@@ -278,4 +278,10 @@ public class WorldUtils
 		{
 		}
 	}
+	
+	public static String getLevelName(ResourceLocation level)
+	{
+		return level.getPath().replaceAll("_", " ").toUpperCase();
+	}
+	
 }
