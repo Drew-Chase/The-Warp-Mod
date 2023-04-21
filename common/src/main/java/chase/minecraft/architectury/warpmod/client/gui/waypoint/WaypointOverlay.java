@@ -5,7 +5,6 @@ import chase.minecraft.architectury.warpmod.data.Warp;
 import chase.minecraft.architectury.warpmod.data.WaypointIcons;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -13,7 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3d;
 
 @SuppressWarnings("all")
 public class WaypointOverlay extends GuiComponent
@@ -43,8 +41,7 @@ public class WaypointOverlay extends GuiComponent
 	 */
 	public void render(PoseStack poseStack)
 	{
-		Vector3d warpPos = new Vector3d(warp.getX(), warp.getY(), warp.getZ());
-		Vector3d screenSpace = RenderUtils.worldSpaceToScreenSpace(warpPos);
+		Vec3 screenSpace = RenderUtils.worldSpaceToScreenSpace(warp.getPosition());
 		ResourceLocation warpDim = warp.getDimension();
 		ResourceLocation playerDim = minecraft.player.level.dimension().location();
 		boolean isVisible = warpDim.equals(playerDim) && RenderUtils.screenSpaceCoordinateIsVisible(screenSpace);
@@ -63,13 +60,12 @@ public class WaypointOverlay extends GuiComponent
 			RenderSystem.disableDepthTest();
 			RenderSystem.depthMask(false);
 			RenderSystem.setShaderColor(r, g, b, 1f);
-			if (warp.getIcon() == null)
-				RenderSystem.setShaderTexture(0, WaypointIcons.DEFAULT);
-			else
-				RenderSystem.setShaderTexture(0, warp.getIcon());
+			if (warp.getIcon() == null) RenderSystem.setShaderTexture(0, WaypointIcons.DEFAULT);
+			else RenderSystem.setShaderTexture(0, warp.getIcon());
 			
 			renderIcon(poseStack, x, y);
-			renderLabel(poseStack, x, y);
+			if (RenderUtils.isLookingAt(warp.getPosition()))
+				renderLabel(poseStack, x, y);
 			
 			RenderSystem.depthMask(true);
 			RenderSystem.enableDepthTest();
@@ -120,14 +116,8 @@ public class WaypointOverlay extends GuiComponent
 	private void renderLabelBackground(PoseStack poseStack, int x, int y, int textWidth)
 	{
 		// Draw Background
-		final int padding = 5;
-		if (warp.getColor() == ChatFormatting.BLACK)
-		{
-			RenderSystem.setShaderColor(1f, 1f, 1f, .5f);
-		} else
-		{
-			RenderSystem.setShaderColor(0f, 0f, 0f, .5f);
-		}
+		final int padding = 2;
+		RenderSystem.setShaderColor(0f, 0f, 0f, .5f);
 		int startX = x - (padding + (textWidth / 2)) + (WaypointIcons.SIZE / 2);
 		int endX = (int) (startX + (padding * 2) + textWidth);
 		fill(poseStack, startX, y + WaypointIcons.SIZE, endX, y + WaypointIcons.SIZE + minecraft.font.lineHeight + 10, -0x00_00_00_FF);
@@ -144,8 +134,7 @@ public class WaypointOverlay extends GuiComponent
 		int maxDistance = 100;
 		int minSize = 16;
 		int maxSize = WaypointIcons.SIZE;
-		if (distanceToWarp > maxDistance)
-			currentSize = minSize;
+		if (distanceToWarp > maxDistance) currentSize = minSize;
 		else
 		{
 			currentSize = (int) (maxSize - ((maxSize - minSize) * (distanceToWarp / maxDistance)));
