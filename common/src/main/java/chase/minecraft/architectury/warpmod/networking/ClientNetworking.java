@@ -42,7 +42,6 @@ public class ClientNetworking extends WarpNetworking
 			int length = buf.readInt();
 			WarpModClient.remoteVersion = buf.readCharSequence(length, Charset.defaultCharset()).toString();
 			WarpModClient.isOP = buf.readBoolean();
-			
 		});
 	}
 }
