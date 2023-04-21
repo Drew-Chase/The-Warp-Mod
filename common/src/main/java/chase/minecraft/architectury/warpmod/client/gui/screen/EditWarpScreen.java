@@ -79,7 +79,7 @@ public class EditWarpScreen extends Screen
 		_parent = parent;
 		assert Minecraft.getInstance().player != null;
 		player = Minecraft.getInstance().player;
-		warp = new Warp("", player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player);
+		warp = new Warp("", player.getX(), player.getEyeY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player);
 		dimension = player.level.dimension().location();
 		ogName = "";
 		this.icon = warp.getIcon().getPath();
@@ -133,11 +133,11 @@ public class EditWarpScreen extends Screen
 		
 		addRenderableWidget(createButton(_nameBox.getX() + _nameBox.getWidth() + 5, _nameBox.getY(), 100, _nameBox.getHeight(), Component.translatable("warpmod.edit.reset"), button ->
 		{
-			_xBox.setValue("");
-			_yBox.setValue("");
-			_zBox.setValue("");
-			_pitchBox.setValue("");
-			_yawBox.setValue("");
+			_xBox.setValue(Double.toString((int) (player.getX() * 100) / 100d));
+			_yBox.setValue(Double.toString((int) (player.getEyeY() * 100) / 100d));
+			_zBox.setValue(Double.toString((int) (player.getZ() * 100) / 100d));
+			_pitchBox.setValue(Double.toString((int) (player.getYRot() * 100) / 100d));
+			_yawBox.setValue(Float.toString((int) (player.getXRot() * 1000) / 1000f));
 		}));
 		
 		initCycleButtons();
@@ -195,7 +195,7 @@ public class EditWarpScreen extends Screen
 		if (_yawBox.getValue().isEmpty()) _yawBox.setSuggestion(Float.toString((int) (player.getXRot() * 10000) / 100f));
 		else _yawBox.setSuggestion("");
 		
-		if (_pitchBox.getValue().isEmpty()) _pitchBox.setSuggestion(Float.toString((int) (player.getY() * 10000) / 100f));
+		if (_pitchBox.getValue().isEmpty()) _pitchBox.setSuggestion(Float.toString((int) (player.getEyeY() * 10000) / 100f));
 		else _pitchBox.setSuggestion("");
 		
 		if (_zBox.getValue().isEmpty()) _zBox.setSuggestion(Double.toString((int) (player.getZ() * 100) / 100d));
