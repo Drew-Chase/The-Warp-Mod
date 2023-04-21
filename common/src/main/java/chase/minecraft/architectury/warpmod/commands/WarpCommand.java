@@ -198,7 +198,7 @@ public class WarpCommand
 				context.getSource().sendFailure(Component.literal(String.format("Warp does NOT exist: %s", name)));
 				return false;
 			}
-			warps.get(name).teleport(true);
+			warps.get(name).teleport(context.getSource().getPlayer());
 			context.getSource().sendSuccess(Component.literal(String.format("%sWarped to: %s%s", ChatFormatting.GREEN, ChatFormatting.GOLD, name)), false);
 			return true;
 		}
@@ -239,6 +239,7 @@ public class WarpCommand
 				player.sendSystemMessage(canceledText);
 			});
 			
+			
 			return true;
 			
 		}
@@ -267,6 +268,7 @@ public class WarpCommand
 			BlockPos pos = player.getLevel().getSharedSpawnPos();
 			player.teleportTo(Objects.requireNonNull(player.getServer()).overworld(), pos.getX() + .5, pos.getY(), pos.getZ() + .5, player.getYRot(), player.getXRot());
 			context.getSource().sendSuccess(Component.literal(String.format("%sWarped to: %sSpawn", ChatFormatting.GREEN, ChatFormatting.GOLD)), false);
+			
 			return true;
 		}
 		context.getSource().sendFailure(Component.literal("Command needs to be run as player"));
@@ -462,6 +464,7 @@ public class WarpCommand
 			}
 			Warp warp = new Warp(name, x, y, z, yaw, pitch, dimension.dimension().location(), player);
 			WarpCreationResponseType response = Warps.fromPlayer(player).createAddOrUpdate(warp);
+			
 			if (response == WarpCreationResponseType.FailureDueToDuplicate)
 			{
 				context.getSource().sendFailure(Component.literal(String.format("Warp already exists with name: %s", name)));
@@ -522,6 +525,7 @@ public class WarpCommand
 				}
 			}
 			warps.rename(name, new_name);
+			
 			context.getSource().sendSuccess(Component.literal(String.format("%sWarp renamed %s%s %s-> %s%s", ChatFormatting.GREEN, ChatFormatting.GOLD, name, ChatFormatting.GOLD, ChatFormatting.GREEN, new_name)), false);
 			return true;
 		}
@@ -548,6 +552,7 @@ public class WarpCommand
 			{
 				context.getSource().sendFailure(Component.literal(String.format("Warp does NOT exist: %s%s", ChatFormatting.GOLD, name)));
 			}
+			
 			return true;
 		}
 		
@@ -611,6 +616,7 @@ public class WarpCommand
 			component.append(Component.literal(" %sDIM: %s%s\n".formatted(primary, secondary, warp.getDimension().getPath())));
 		}
 		context.getSource().sendSuccess(component, false);
+		
 		return true;
 	}
 	
@@ -643,6 +649,7 @@ public class WarpCommand
 				Component clickText = Component.literal("[ACCEPT]").withStyle(style -> style.withColor(ChatFormatting.GOLD).withClickEvent(click).withHoverEvent(hover));
 				toPlayer.sendSystemMessage(Component.literal("You have been invited to warp ").withStyle(ChatFormatting.GREEN).append(clickText));
 				context.getSource().sendSuccess(Component.literal("%s%s%s has been invited to %s%s".formatted(ChatFormatting.GOLD, toPlayer.getDisplayName().getString(), ChatFormatting.GREEN, ChatFormatting.GREEN, warpName)), false);
+				
 				return true;
 			} else
 			{
