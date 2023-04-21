@@ -47,9 +47,10 @@ public class PlayerMixin
 		WorldUtils.removeTravelBar(player);
 	}
 	
-	@Inject(at = @At("HEAD"), method = "die")
+	@Inject(at = @At("HEAD"), method = "die", cancellable = true)
 	public void die(DamageSource damageSource, CallbackInfo info)
 	{
+		info.cancel();
 		ServerPlayer player = (ServerPlayer) ((Object) this);
 		Warps.fromPlayer(player).createDeath();
 		WorldUtils.removeTravelBar(player);
