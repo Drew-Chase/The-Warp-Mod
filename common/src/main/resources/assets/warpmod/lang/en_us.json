@@ -21,5 +21,6 @@
   "warpmod.edit.dim": "Dimension",
   "warpmod.edit.icon": "Icon",
   "warpmod.edit.color": "Color",
-  "warpmod.edit.save": "Save"
+  "warpmod.edit.save": "Save",
+  "warpmod.edit.reset": "RESET"
 }
