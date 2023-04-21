@@ -1,7 +1,6 @@
 package chase.minecraft.architectury.warpmod.client;
 
 import chase.minecraft.architectury.warpmod.client.gui.screen.EditWarpScreen;
-import chase.minecraft.architectury.warpmod.client.gui.screen.PlayerListScreen;
 import chase.minecraft.architectury.warpmod.client.gui.screen.WarpListScreen;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
@@ -9,7 +8,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 
 @Environment(EnvType.CLIENT)
 // This is an enum in Java that defines a key mapping for a warp mod in Minecraft. It creates a new `KeyMapping` object with a localized name, a key code, and a category. It also stores a `Runnable` object that will be executed when the key is pressed. The enum has methods to register the key mapping, check if the key has been clicked, and execute the `Runnable` object when the key is pressed.
@@ -24,17 +22,21 @@ public enum WarpKeyMappings
 	{
 		Minecraft client = Minecraft.getInstance();
 		client.setScreen(new EditWarpScreen(null));
-	}),
-	OPEN_PLAYER_SCREEN("open_player_list_screen", InputConstants.KEY_P, () ->
-	{
-		Minecraft client = Minecraft.getInstance();
-		if (client.isSingleplayer())
-		{
-			assert client.player != null;
-			client.player.displayClientMessage(Component.literal("Players Warp Screen is only available in multiplayer!"), true);
-		} else
-			client.setScreen(new PlayerListScreen(null));
-	});
+	})
+	
+//	,
+//	OPEN_PLAYER_SCREEN("open_player_list_screen", InputConstants.KEY_P, () ->
+//	{
+//		Minecraft client = Minecraft.getInstance();
+//		if (client.isSingleplayer())
+//		{
+//			assert client.player != null;
+//			client.player.displayClientMessage(Component.literal("Players Warp Screen is only available in multiplayer!"), true);
+//		} else
+//			client.setScreen(new PlayerListScreen(null));
+//	})
+	
+	;
 	private static final String WARP_KEYBINDING_CATEGORY = "key.categories.warpmod";
 	private final Runnable _consumed;
 	private final KeyMapping _key;
