@@ -4,7 +4,31 @@
 
 It allows teleporting to various warps, This mod does NOT need to be installed client-side.
 
-# Commands
+# Clientside
+
+This mod can now be installed purely serverside, purely clientside, or for the best experience installed on both.
+
+## Keybindings
+
+| Key | Name            | Description                      | 
+|-----|-----------------|----------------------------------|
+| B   | Create Warp     | This will open a quick create UI |
+| U   | Open Warps Menu | This will open a warp list UI    |
+
+![keybindings](docs/images/keybindings.png)
+
+## Warp Menu
+This is a menu to show a list of all of your warps, remove, edit and teleport to them.
+![warp menu ](docs/images/warpmenu.png)
+
+## Edit/Create Warp Screen
+This is the menu that will allow you to create and edit your warps
+![create warp](docs/images/createwarp.png)
+
+
+# Serverside
+
+## Commands
 
 - `/warp set <name>` - *creates a warp*
 - `/warp list` - *lists all warps created*
