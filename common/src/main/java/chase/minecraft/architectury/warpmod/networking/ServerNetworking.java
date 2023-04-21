@@ -10,8 +10,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 import java.nio.charset.Charset;
 
@@ -24,12 +23,12 @@ public class ServerNetworking extends WarpNetworking
 	{
 		C2SPacketReceiver.register(LIST, (server, player, handler, buf, responseSender) ->
 		{
+			CompoundTag data = new CompoundTag();
+			data.put("warps", Warps.fromPlayer(player).toNbt());
+			FriendlyByteBuf dataBuf = new FriendlyByteBuf(Unpooled.buffer());
+			dataBuf.writeNbt(data);
 			server.execute(() ->
 			{
-				CompoundTag data = new CompoundTag();
-				data.put("warps", Warps.fromPlayer(player).toNbt());
-				FriendlyByteBuf dataBuf = new FriendlyByteBuf(Unpooled.buffer());
-				dataBuf.writeNbt(data);
 				responseSender.send(LIST, dataBuf);
 			});
 		});
@@ -42,7 +41,7 @@ public class ServerNetworking extends WarpNetworking
 				Warps warps = Warps.fromPlayer(player);
 				if (warps.exists(name))
 				{
-					warps.get(name).teleport(true);
+					warps.get(name).teleport(player);
 				}
 			}
 		});
@@ -72,15 +71,24 @@ public class ServerNetworking extends WarpNetworking
 			{
 				warps.createAddOrUpdate(warp);
 			}
+			
+			
+			server.execute(() ->
+			{
+				CompoundTag data = new CompoundTag();
+				data.put("warps", Warps.fromPlayer(player).toNbt());
+				FriendlyByteBuf dataBuf = new FriendlyByteBuf(Unpooled.buffer());
+				dataBuf.writeNbt(data);
+				responseSender.send(LIST, dataBuf);
+			});
 		});
 		C2SPacketReceiver.register(DIMENSIONS, (server, player, handler, buf, responseSender) ->
 		{
 			CompoundTag tag = new CompoundTag();
-			int index = 0;
-			for (ResourceKey<Level> levelKey : server.levelKeys())
+			for (ServerLevel level : server.getAllLevels())
 			{
-				tag.putString(levelKey.location().toString(), levelKey.location().toString());
-				index++;
+				String dim = level.dimension().location().toString();
+				tag.putString(dim, dim);
 			}
 			server.execute(() ->
 			{
@@ -99,6 +107,8 @@ public class ServerNetworking extends WarpNetworking
 			data.writeInt(version.length());
 			data.writeCharSequence(version, Charset.defaultCharset());
 			data.writeBoolean(isOP);
+			
+//			data.write
 			try
 			{
 				if (buf.readBoolean())
