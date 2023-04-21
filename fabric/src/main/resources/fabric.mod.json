@@ -28,6 +28,9 @@
   ],
   "depends": {
     "fabricloader": ">=0.14.18",
-    "minecraft": ">=1.19.4"
+    "minecraft": ">=1.19.4",
+    "architectury": ">=5.14.76",
+    "badpackets": ">=0.4.1"
+
   }
 }
