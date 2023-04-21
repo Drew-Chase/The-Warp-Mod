@@ -1,10 +1,10 @@
 package chase.minecraft.architectury.warpmod.data;
 
+import chase.minecraft.architectury.warpmod.client.gui.waypoint.WaypointColor;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.PacketSender;
-import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -26,26 +26,28 @@ public class Warp
 	private String name;
 	private double x, y, z;
 	private float pitch, yaw;
-	private ChatFormatting color = ChatFormatting.WHITE;
+	private WaypointColor color = WaypointColor.WHITE;
 	private ResourceLocation dimension;
 	private final Player player;
+	
 	private ResourceLocation icon = WaypointIcons.DEFAULT;
 	private boolean temporary = false;
+	private boolean visible = true;
 	public static Warp EMPTY = new Warp("", 0, 0, 0, 0, 0, new ResourceLocation("overworld"), null);
 	
 	
 	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player)
 	{
-		this(name, x, y, z, pitch, yaw, dimension, player, false, WaypointIcons.DEFAULT, ChatFormatting.WHITE);
+		this(name, x, y, z, pitch, yaw, dimension, player, false, WaypointIcons.DEFAULT, WaypointColor.WHITE, true);
 	}
 	
 	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary)
 	{
-		this(name, x, y, z, pitch, yaw, dimension, player, temporary, WaypointIcons.DEFAULT, ChatFormatting.WHITE);
+		this(name, x, y, z, pitch, yaw, dimension, player, temporary, WaypointIcons.DEFAULT, WaypointColor.WHITE, true);
 	}
 	
 	
-	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary, ResourceLocation icon, ChatFormatting color)
+	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary, ResourceLocation icon, WaypointColor color, boolean visible)
 	{
 		this.name = name;
 		this.x = x;
@@ -58,6 +60,7 @@ public class Warp
 		this.temporary = temporary;
 		this.icon = icon;
 		this.color = color;
+		this.visible = visible;
 	}
 	
 	/**
@@ -114,7 +117,7 @@ public class Warp
 	 * @return
 	 */
 	@NotNull
-	public ChatFormatting getColor()
+	public WaypointColor getColor()
 	{
 		return color;
 	}
@@ -160,6 +163,11 @@ public class Warp
 	}
 	
 	/**
+	 * @return if the warp is visible in the world or not.
+	 */
+	public boolean visible() {return visible;}
+	
+	/**
 	 * This Java function updates the location and orientation of a resource with a given name and dimension.
 	 *
 	 * @param name      A string representing the name of the object being updated.
@@ -188,7 +196,7 @@ public class Warp
 	 * @param color     The color of the waypoint in RGB format. If no color is specified, it defaults to white (0xFF_FF_FF).
 	 * @param icon      The icon parameter is a ResourceLocation object that represents the location of the icon image file for the waypoint. If no icon is specified, it will default to the WaypointIcons.DEFAULT image.
 	 */
-	public void update(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, @Nullable ChatFormatting color, @Nullable ResourceLocation icon)
+	public void update(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, @Nullable WaypointColor color, @Nullable ResourceLocation icon)
 	{
 		this.name = name;
 		this.x = x;
@@ -197,7 +205,7 @@ public class Warp
 		this.pitch = pitch;
 		this.yaw = yaw;
 		this.dimension = dimension;
-		this.color = color == null ? ChatFormatting.WHITE : color;
+		this.color = color == null ? WaypointColor.WHITE : color;
 		this.icon = icon == null ? WaypointIcons.DEFAULT : icon;
 	}
 	
@@ -235,16 +243,17 @@ public class Warp
 	/**
 	 * This function teleports the player to the warp location
 	 */
-	public void teleport(boolean fromServer)
+	public void teleport(@Nullable ServerPlayer player)
 	{
-		if (fromServer)
+		if (player != null)
 		{
-			ServerPlayer player = (ServerPlayer) this.player;
+			Warps.fromPlayer(player).createBack();
 			ServerLevel level = WorldUtils.getLevelFromID(player.server, dimension);
 			if (level != null)
 			{
 				player.teleportTo(level, x, y, z, pitch, yaw);
 			}
+			Warps.fromPlayer(player).createBack();
 		} else
 		{
 			FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
@@ -270,8 +279,9 @@ public class Warp
 		tag.putFloat("yaw", yaw);
 		tag.putString("dimension", dimension.toString());
 		tag.putString("color", color.getName());
-		tag.putString("icon", icon.toString());
+		tag.putString("icon", WaypointIcons.getName(icon));
 		tag.putBoolean("temp", temporary);
+		tag.putBoolean("visible", visible);
 		return tag;
 	}
 	
@@ -290,19 +300,30 @@ public class Warp
 		double z = tag.getDouble("z");
 		float yaw = tag.getFloat("yaw");
 		float pitch = tag.getFloat("pitch");
-		ChatFormatting color = ChatFormatting.WHITE;
+		ResourceLocation dimension = new ResourceLocation(tag.getString("dimension"));
+		boolean visible = true;
+		boolean temp = false;
+		WaypointColor color = WaypointColor.WHITE;
+		ResourceLocation icon = WaypointIcons.DEFAULT;
+		
 		if (tag.contains("color"))
 		{
-			color = ChatFormatting.getByName(tag.getString("color"));
-			if (color == null)
-				color = ChatFormatting.WHITE;
+			color = WaypointColor.getByName(tag.getString("color"));
 		}
-		boolean temp = tag.getBoolean("temp");
-		ResourceLocation icon = new ResourceLocation(tag.getString("icon"));
-		if (icon == null)
-			icon = WaypointIcons.DEFAULT;
-		ResourceLocation dimension = new ResourceLocation(tag.getString("dimension"));
-		return new Warp(name, x, y, z, yaw, pitch, dimension, player, temp, icon, color);
+		if (tag.contains("icon"))
+		{
+			icon = WaypointIcons.getByName(tag.getString("icon"));
+		}
+		if (tag.contains("visible"))
+		{
+			visible = tag.getBoolean("visible");
+		}
+		if (tag.contains("temp"))
+		{
+			visible = tag.getBoolean("temp");
+		}
+		
+		return new Warp(name, x, y, z, yaw, pitch, dimension, player, temp, icon, color, visible);
 		
 	}
 	
