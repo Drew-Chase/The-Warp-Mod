@@ -1,5 +1,6 @@
 package chase.minecraft.architectury.warpmod.client;
 
+import chase.minecraft.architectury.warpmod.data.Warps;
 import chase.minecraft.architectury.warpmod.networking.ClientNetworking;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import io.netty.buffer.Unpooled;
@@ -15,7 +16,7 @@ public abstract class WarpModClient
 {
 	
 	@NotNull
-	public static String[] dimensions = {"ERROR"};
+	public static String[] dimensions = {"minecraft:overworld", "minecraft:the_nether", "minecraft:the_end"};
 	public static boolean onServer = false;
 	public static boolean isOP = false;
 	public static String remoteVersion = "";
@@ -53,8 +54,6 @@ public abstract class WarpModClient
 	
 	/**
 	 * Runs when logging in to a server.
-	 *
-	 * @param connection
 	 */
 	protected static void onServerLogin(Connection connection)
 	{
@@ -63,11 +62,12 @@ public abstract class WarpModClient
 		PacketSender.c2s().send(WarpNetworking.DIMENSIONS, new FriendlyByteBuf(Unpooled.buffer()));
 		data.writeBoolean(true);
 		PacketSender.c2s().send(WarpNetworking.PING, data);
+		Warps.loadClient();
 	}
 	
 	protected static void onServerLogout(Connection connection)
 	{
-	
+		Warps.saveClient();
 	}
 	
 	
