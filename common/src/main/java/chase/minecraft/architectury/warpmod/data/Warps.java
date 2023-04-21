@@ -1,15 +1,24 @@
 package chase.minecraft.architectury.warpmod.data;
 
 import chase.minecraft.architectury.warpmod.WarpMod;
+import chase.minecraft.architectury.warpmod.client.WarpModClient;
+import chase.minecraft.architectury.warpmod.client.gui.waypoint.WaypointColor;
 import chase.minecraft.architectury.warpmod.enums.WarpCreationResponseType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.minecraft.ChatFormatting;
+import dev.architectury.platform.Platform;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.world.entity.player.Player;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
@@ -64,9 +73,11 @@ public class Warps
 		if (warps.containsKey(warp.getName()))
 		{
 			warps.put(warp.getName(), warp);
+			saveClient();
 			return WarpCreationResponseType.Overwritten;
 		}
 		warps.put(warp.getName(), warp);
+		saveClient();
 		return WarpCreationResponseType.Success;
 	}
 	
@@ -76,6 +87,7 @@ public class Warps
 		remove(name);
 		old.update(new_name, old.getX(), old.getY(), old.getZ(), old.getPitch(), old.getYaw(), old.getDimension(), old.getColor(), old.getIcon());
 		warps.put(new_name, old);
+		saveClient();
 	}
 	
 	/**
@@ -89,6 +101,7 @@ public class Warps
 		if (exists(name))
 		{
 			warps.remove(name);
+			saveClient();
 			return true;
 		}
 		return false;
@@ -190,7 +203,7 @@ public class Warps
 	 */
 	public void createBack()
 	{
-		createAddOrUpdate(new Warp("back", player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player, false, WaypointIcons.TELEPORT, ChatFormatting.WHITE));
+//		createAddOrUpdate(new Warp("back", player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player, false, WaypointIcons.TELEPORT, WaypointColor.WHITE, false));
 	}
 	
 	/**
@@ -198,7 +211,79 @@ public class Warps
 	 */
 	public void createDeath()
 	{
-		createAddOrUpdate(new Warp("death.%d".formatted(System.currentTimeMillis()), player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player, true, WaypointIcons.DEATH, ChatFormatting.RED));
+		createAddOrUpdate(new Warp("death.%d".formatted(System.currentTimeMillis()), player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player, true, WaypointIcons.DEATH, WaypointColor.RED, true));
+	}
+	
+	
+	public void saveClient(ServerData data)
+	{
+		if (!WarpModClient.onServer && !Minecraft.getInstance().isSingleplayer())
+		{
+			CompoundTag tag = new CompoundTag();
+			tag.put("warps", toNbt());
+			try
+			{
+				File dir = Path.of(Platform.getGameFolder().toString(), "The Warp Mod", removeIllegalCharacters(data.ip)).toFile();
+				File file = Path.of(dir.getPath(), "warps.dat").toFile();
+				if (!file.exists())
+				{
+					dir.mkdirs();
+					if (!file.createNewFile())
+						return;
+					
+				}
+				NbtIo.writeCompressed(tag, file);
+			} catch (IOException e)
+			{
+				WarpMod.log.error("Unable to write warp save file: {}", e.getMessage());
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void loadClient(ServerData data)
+	{
+		if (!WarpModClient.onServer && !Minecraft.getInstance().isSingleplayer())
+		{
+			try
+			{
+				File file = Path.of(Platform.getGameFolder().toString(), "The Warp Mod", removeIllegalCharacters(data.ip), "warps.dat").toFile();
+				if (file.exists())
+				{
+					fromNbt(NbtIo.readCompressed(file));
+				} else
+				{
+					saveClient(data);
+				}
+			} catch (IOException e)
+			{
+				WarpMod.log.error("Unable to read warp save file: {}", e.getMessage());
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	
+	private static String removeIllegalCharacters(String path)
+	{
+		return path.replaceAll("[/\\\\?%*:|\"<>]", "-");
+	}
+	
+	
+	public static void saveClient()
+	{
+		Minecraft client = Minecraft.getInstance();
+		ServerData serverData = client.getCurrentServer();
+		LocalPlayer player = client.player;
+		Warps.fromPlayer(player).saveClient(serverData);
+	}
+	
+	public static void loadClient()
+	{
+		Minecraft client = Minecraft.getInstance();
+		ServerData serverData = client.getCurrentServer();
+		LocalPlayer player = client.player;
+		Warps.fromPlayer(player).loadClient(serverData);
 	}
 	
 }
