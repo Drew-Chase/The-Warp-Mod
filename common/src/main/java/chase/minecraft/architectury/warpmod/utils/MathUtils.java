@@ -1,11 +1,10 @@
 package chase.minecraft.architectury.warpmod.utils;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector2f;
+import org.joml.Vector4f;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -90,29 +89,8 @@ public class MathUtils
 		return new Vec2((float) (center.x + x), (float) (center.y + y));
 	}
 	
-	public static ChatFormatting[] getColors()
+	public static boolean isWithin2DBounds(Vector2f position, Vector4f bounds)
 	{
-		String[] colors = ChatFormatting.getNames(true, false).toArray(String[]::new);
-		List<ChatFormatting> items = new ArrayList<>();
-		for (String color : colors)
-		{
-			ChatFormatting c = ChatFormatting.getByName(color);
-			assert c != null;
-			if (c.isColor())
-				items.add(c);
-		}
-		return items.toArray(ChatFormatting[]::new);
+		return position.x >= bounds.x && position.y >= bounds.y && position.x <= bounds.z && position.y <= bounds.w;
 	}
-	
-	public static String[] getColorNames()
-	{
-		ChatFormatting[] colors = getColors();
-		String[] names = new String[colors.length];
-		for (int i = 0; i < names.length; i++)
-		{
-			names[i] = colors[i].getName();
-		}
-		return names;
-	}
-	
 }
