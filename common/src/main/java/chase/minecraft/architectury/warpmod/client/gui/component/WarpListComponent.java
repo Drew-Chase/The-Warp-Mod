@@ -6,6 +6,7 @@ import chase.minecraft.architectury.warpmod.data.Warp;
 import chase.minecraft.architectury.warpmod.data.Warps;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.PacketSender;
@@ -34,13 +35,14 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 	
 	public WarpListComponent(Screen parent)
 	{
-		super(Minecraft.getInstance(), (int) (parent.width), parent.height + 15, 30, parent.height - 32, 30);
+		super(Minecraft.getInstance(), parent.width, parent.height + 15, 30, parent.height - 32, 30);
 		this.parent = parent;
 		Player player = this.minecraft.player;
 		if (PacketSender.c2s().canSend(WarpNetworking.LIST))
 		{
 			PacketSender.c2s().send(WarpNetworking.LIST, new FriendlyByteBuf(Unpooled.buffer()));
 		}
+		Warps.loadClient();
 		for (Warp warp : Warps.fromPlayer(player).getWarps())
 		{
 			addEntry(new WarpEntry(warp));
@@ -62,12 +64,12 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 	
 	public void refreshEntries()
 	{
+		Warps.loadClient();
 		clearEntries();
 		for (Warp warp : Warps.fromPlayer(minecraft.player).getWarps())
 		{
 			addEntry(new WarpEntry(warp));
 		}
-		children().forEach(Entry::refreshEntry);
 	}
 	
 	@Environment(EnvType.CLIENT)
@@ -94,27 +96,36 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 					{
 						if (WarpModClient.onServer)
 						{
-							warp.teleport(false);
+							warp.teleport(null);
 						} else
 						{
 							assert Minecraft.getInstance().player != null;
 							Minecraft.getInstance().player.connection.sendCommand("execute in %s run tp @s %f %f %f %f %f".formatted(warp.getDimension().toString(), warp.getX(), warp.getY(), warp.getZ(), warp.getPitch(), warp.getYaw()));
+							Warps.fromPlayer(Minecraft.getInstance().player).createBack();
 						}
+						Minecraft.getInstance().setScreen(null);
 					}),
 					
 					createButton(0, 0, 50, 20, Component.translatable("warpmod.remove"), button ->
 					{
-						FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-						buf.writeInt(warp.getName().length());
-						buf.writeCharSequence(warp.getName(), Charset.defaultCharset());
-						PacketSender.c2s().send(WarpNetworking.REMOVE, buf);
-						
-						if (PacketSender.c2s().canSend(WarpNetworking.LIST))
+						if (WarpModClient.onServer)
 						{
-							PacketSender.c2s().send(WarpNetworking.LIST, new FriendlyByteBuf(Unpooled.buffer()));
+							
+							FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+							buf.writeInt(warp.getName().length());
+							buf.writeCharSequence(warp.getName(), Charset.defaultCharset());
+							PacketSender.c2s().send(WarpNetworking.REMOVE, buf);
+							
+							if (PacketSender.c2s().canSend(WarpNetworking.LIST))
+							{
+								PacketSender.c2s().send(WarpNetworking.LIST, new FriendlyByteBuf(Unpooled.buffer()));
+							}
+						} else
+						{
+							Warps.fromPlayer(minecraft.player).remove(warp.getName());
+							refreshEntries();
 						}
-					}),
-					createButton(0, 0, 50, 20, Component.translatable("warpmod.edit"), button ->
+					}), createButton(0, 0, 50, 20, Component.translatable("warpmod.edit"), button ->
 					{
 						minecraft.setScreen(new EditWarpScreen(WarpListComponent.this.parent, this.warp));
 					}));
@@ -125,18 +136,25 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 		}
 		
 		@Override
-		public void render(@NotNull PoseStack matrixStack, int x, int y, int uk, int widgetWidth, int widgetHeight, int mouseX, int mouseY, boolean isHovering, float partialTicks)
+		public void render(@NotNull PoseStack poseStack, int x, int y, int uk, int widgetWidth, int widgetHeight, int mouseX, int mouseY, boolean isHovering, float partialTicks)
 		{
 			int parentWidth = WarpListComponent.this.width;
 			
+			if (isHovering)
+			{
+				RenderSystem.setShaderColor(0f, 0f, 0f, .5f);
+				fill(poseStack, x, y, x + parentWidth, y + widgetHeight, 0xFF_FF_FF_FF);
+				RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+			}
+			
 			// Render Label
-			WarpListComponent.this.minecraft.font.draw(matrixStack, this.name, 20, (y + ((float) WarpListComponent.this.minecraft.font.lineHeight / 2)), 0xFF_FF_FF);
+			WarpListComponent.this.minecraft.font.draw(poseStack, this.name, 20, (y + ((float) WarpListComponent.this.minecraft.font.lineHeight / 2)), 0xFF_FF_FF);
 			
 			// Render Buttons
 			int buttonPadding = 4;
 			int buttonLastX = widgetWidth;
-			if (!minecraft.isSingleplayer())
-				buttons.get(0).active = !WarpModClient.isOP;
+			if (!minecraft.isSingleplayer()) buttons.get(0).active = !WarpModClient.isOP;
+			
 			for (int i = 0; i < buttons.size(); i++)
 			{
 				Button button = buttons.get(i);
@@ -145,7 +163,7 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 				button.setX(buttonLastX);
 				
 				button.setY(y);
-				button.render(matrixStack, mouseX, mouseY, partialTicks);
+				button.render(poseStack, mouseX, mouseY, partialTicks);
 			}
 		}
 		
@@ -166,6 +184,13 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 		void refreshEntry()
 		{
 		
+		}
+		
+		@Override
+		public boolean mouseClicked(double mouseX, double mouseY, int mouseButton)
+		{
+			
+			return super.mouseClicked(mouseX, mouseY, mouseButton);
 		}
 	}
 }
