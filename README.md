@@ -7,6 +7,9 @@ It allows teleporting to various warps, This mod does NOT need to be installed c
 # Clientside
 
 This mod can now be installed purely serverside, purely clientside, or for the best experience installed on both.
+# Waypoints
+Warps can now show in game via waypoints.
+![img.png](docs/images/waypoints.png)
 
 ## Keybindings
 
