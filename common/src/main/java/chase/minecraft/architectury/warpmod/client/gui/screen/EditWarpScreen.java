@@ -2,18 +2,23 @@ package chase.minecraft.architectury.warpmod.client.gui.screen;
 
 import chase.minecraft.architectury.warpmod.WarpMod;
 import chase.minecraft.architectury.warpmod.client.WarpModClient;
-import chase.minecraft.architectury.warpmod.client.gui.GUIFactory;
+import chase.minecraft.architectury.warpmod.client.gui.component.ColorButton;
+import chase.minecraft.architectury.warpmod.client.gui.component.DropdownWidget;
+import chase.minecraft.architectury.warpmod.client.gui.waypoint.WaypointColor;
 import chase.minecraft.architectury.warpmod.data.Warp;
+import chase.minecraft.architectury.warpmod.data.Warps;
 import chase.minecraft.architectury.warpmod.data.WaypointIcons;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
-import chase.minecraft.architectury.warpmod.utils.MathUtils;
+import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.PacketSender;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.*;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.CommonComponents;
@@ -25,7 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Objects;
+import java.util.Random;
 
 import static chase.minecraft.architectury.warpmod.client.gui.GUIFactory.*;
 
@@ -43,10 +50,14 @@ public class EditWarpScreen extends Screen
 	private EditBox _zBox;
 	private EditBox _pitchBox;
 	private EditBox _yawBox;
-	private String dimension, icon;
+	private String icon;
+	private ResourceLocation dimension;
 	private Button _saveButton;
-	private CycleButton<Object> _dimensionButton, _iconButton, _colorButton;
-	private ChatFormatting color = ChatFormatting.WHITE;
+	private ColorButton _colorButton;
+	private DropdownWidget<ResourceLocation> _dimensionButton;
+	private DropdownWidget<String> _iconButton;
+	private WaypointColor color = WaypointColor.WHITE;
+	private boolean visible = true;
 	
 	public EditWarpScreen(@Nullable Screen parent, @NotNull Warp warp)
 	{
@@ -55,10 +66,11 @@ public class EditWarpScreen extends Screen
 		this.warp = warp;
 		assert Minecraft.getInstance().player != null;
 		player = Minecraft.getInstance().player;
-		dimension = warp.getDimension().toString();
+		dimension = warp.getDimension();
 		ogName = warp.getName();
 		color = warp.getColor();
 		this.icon = warp.getIcon().getPath();
+		this.visible = warp.visible();
 	}
 	
 	public EditWarpScreen(@Nullable Screen parent)
@@ -68,10 +80,14 @@ public class EditWarpScreen extends Screen
 		assert Minecraft.getInstance().player != null;
 		player = Minecraft.getInstance().player;
 		warp = new Warp("", player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player);
-		dimension = player.level.dimension().location().toString();
+		dimension = player.level.dimension().location();
 		ogName = "";
 		this.icon = warp.getIcon().getPath();
-		this.color = warp.getColor();
+		
+		Random random = new Random();
+		int index = random.nextInt(0, WaypointColor.values().length - 1);
+		this.color = WaypointColor.values()[index];
+		this.visible = warp.visible();
 	}
 	
 	@Override
@@ -113,6 +129,16 @@ public class EditWarpScreen extends Screen
 			addRenderableWidget(col);
 			currentX += inputWidth + inputPadding;
 		}
+		_nameBox.setX(_xBox.getX());
+		
+		addRenderableWidget(createButton(_nameBox.getX() + _nameBox.getWidth() + 5, _nameBox.getY(), 100, _nameBox.getHeight(), Component.translatable("warpmod.edit.reset"), button ->
+		{
+			_xBox.setValue("");
+			_yBox.setValue("");
+			_zBox.setValue("");
+			_pitchBox.setValue("");
+			_yawBox.setValue("");
+		}));
 		
 		initCycleButtons();
 		
@@ -131,61 +157,7 @@ public class EditWarpScreen extends Screen
 		
 		_saveButton = addRenderableWidget(createButton((width / 2) - 110, height - 30, 100, 20, Component.translatable("warpmod.edit.save"), button ->
 		{
-			boolean ok = true;
-			String name = _nameBox.getValue();
-			if (name.isEmpty()) ok = false;
-			
-			double x = 0;
-			double y = 0;
-			double z = 0;
-			float pitch = 0;
-			float yaw = 0;
-			
-			try
-			{
-				
-				if (_nameBox.getValue().isEmpty())
-				{
-					_nameBox.setSuggestion("Totally Cool Warp Name");
-				} else
-				{
-					_nameBox.setSuggestion("");
-				}
-				
-				if (_yawBox.getValue().isEmpty()) yaw = player.getXRot();
-				else yaw = Float.parseFloat(_yawBox.getValue());
-				
-				if (_pitchBox.getValue().isEmpty()) pitch = player.getYRot();
-				else pitch = Float.parseFloat(_pitchBox.getValue());
-				
-				if (_zBox.getValue().isEmpty()) z = player.getZ();
-				else z = Double.parseDouble(_zBox.getValue());
-				
-				if (_yBox.getValue().isEmpty()) y = player.getY();
-				else y = Double.parseDouble(_yBox.getValue());
-				
-				if (_xBox.getValue().isEmpty()) x = player.getX();
-				else x = Double.parseDouble(_xBox.getValue());
-				
-			} catch (NumberFormatException e)
-			{
-				ok = false;
-			}
-			
-			if (ok)
-			{
-				
-				// Create packet buffer and send to server
-				FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-				buf.writeInt(ogName.length());
-				buf.writeCharSequence(ogName, Charset.defaultCharset());
-				buf.writeNbt(new Warp(name, x, y, z, pitch, yaw, new ResourceLocation(dimension), player, false, WarpMod.id(icon), this.color).toNbt());
-				PacketSender.c2s().send(WarpNetworking.CREATE, buf);
-				
-				// Return to parent screen
-				assert minecraft != null;
-				minecraft.setScreen(_parent);
-			}
+			save();
 		}));
 		addRenderableWidget(createButton((width / 2) + 10, height - 30, 100, 20, CommonComponents.GUI_CANCEL, button ->
 		{
@@ -240,73 +212,28 @@ public class EditWarpScreen extends Screen
 	
 	private void initCycleButtons()
 	{
-		// Create dimension cycle button
-		_dimensionButton = GUIFactory.createCycleButton(Component.translatable("warpmod.edit.dim"), 0, 0, 100, 20, this.icon, WarpModClient.dimensions, getDimensionTooltip(), value ->
+		HashMap<ResourceLocation, String> dimensions = new HashMap<>();
+		for (int i = 0; i < WarpModClient.dimensions.length; i++)
+		{
+			ResourceLocation dimension = new ResourceLocation(WarpModClient.dimensions[i]);
+			
+			dimensions.put(dimension, WorldUtils.getLevelName(dimension));
+		}
+		_dimensionButton = new DropdownWidget<ResourceLocation>(0, 0, 100, 20, this.dimension, dimensions, value ->
 		{
 			this.dimension = value;
-			_dimensionButton.setTooltip(Tooltip.create(getDimensionTooltip()));
-		}, value ->
-		{
-			String result = player.level.dimension().location().toString();
-			for (String item : WarpModClient.dimensions)
-			{
-				ResourceLocation dim = new ResourceLocation(item);
-				if (dim.toString().equals(value))
-				{
-					result = dim.toString();
-					break;
-				}
-			}
-			
-			return Component.literal(new ResourceLocation(result).getPath().toUpperCase().replaceAll("_", " "));
 		});
 		
-		
-		// Create icon cycle button
-		_iconButton = GUIFactory.createCycleButton(Component.translatable("warpmod.edit.icon"), 0, 0, 100, 20, this.icon, WaypointIcons.names(), getIconTooltip(), value ->
+		_iconButton = new DropdownWidget<>(0, 0, 100, 20, WaypointIcons.getName(WarpMod.id(this.icon)), WaypointIcons.names(), value ->
 		{
 			this.icon = Objects.requireNonNull(WaypointIcons.getByName(value)).getPath();
-			
-			_iconButton.setTooltip(Tooltip.create(getIconTooltip()));
-			_iconButton.setTooltipDelay(0);
-		}, value ->
-		{
-			ResourceLocation icon = WarpMod.id(this.icon);
-			for (ResourceLocation loc : WaypointIcons.icons())
-			{
-				if (WaypointIcons.getName(loc).equals(value))
-				{
-					icon = loc;
-					break;
-				}
-			}
-			
-			return Component.literal(WaypointIcons.getName(icon));
 		});
 		
 		
 		// Create color cycle button
-		String[] colors = MathUtils.getColorNames();
-		_colorButton = GUIFactory.createCycleButton(Component.translatable("warpmod.edit.color"), 0, 0, 100, 20, this.color.getName(), colors, getColorTooltip(), value ->
+		_colorButton = new ColorButton(0, 0, 100, 20, this.color, color ->
 		{
-			this.color = ChatFormatting.getByName(value);
-			
-			_colorButton.setTooltip(Tooltip.create(getColorTooltip()));
-			_colorButton.setTooltipDelay(0);
-		}, value ->
-		{
-			ChatFormatting color = ChatFormatting.WHITE;
-			for (String name : colors)
-			{
-				if (name.equalsIgnoreCase(value))
-				{
-					color = ChatFormatting.getByName(value);
-					if (color == null) color = ChatFormatting.WHITE;
-					break;
-				}
-			}
-			
-			return Component.literal(color.getName().replaceAll("_", " ").toUpperCase()).withStyle(color);
+			this.color = color;
 		});
 	}
 	
@@ -328,7 +255,7 @@ public class EditWarpScreen extends Screen
 	
 	private Component getColorTooltip()
 	{
-		String[] colors = MathUtils.getColorNames();
+		String[] colors = WaypointColor.getColorNames();
 		MutableComponent tooltip = Component.translatable("warpmod.edit.color");
 		for (String color : colors)
 		{
@@ -356,6 +283,78 @@ public class EditWarpScreen extends Screen
 			}
 		}
 		return tooltip;
+	}
+	
+	private void save()
+	{
+		
+		boolean ok = true;
+		String name = _nameBox.getValue();
+		if (name.isEmpty()) ok = false;
+		
+		double x = 0;
+		double y = 0;
+		double z = 0;
+		float pitch = 0;
+		float yaw = 0;
+		
+		try
+		{
+			
+			if (_nameBox.getValue().isEmpty())
+			{
+				_nameBox.setSuggestion("Totally Cool Warp Name");
+			} else
+			{
+				_nameBox.setSuggestion("");
+			}
+			
+			if (_yawBox.getValue().isEmpty()) yaw = player.getXRot();
+			else yaw = Float.parseFloat(_yawBox.getValue());
+			
+			if (_pitchBox.getValue().isEmpty()) pitch = player.getYRot();
+			else pitch = Float.parseFloat(_pitchBox.getValue());
+			
+			if (_zBox.getValue().isEmpty()) z = player.getZ();
+			else z = Double.parseDouble(_zBox.getValue());
+			
+			if (_yBox.getValue().isEmpty()) y = player.getY();
+			else y = Double.parseDouble(_yBox.getValue());
+			
+			if (_xBox.getValue().isEmpty()) x = player.getX();
+			else x = Double.parseDouble(_xBox.getValue());
+			
+		} catch (NumberFormatException e)
+		{
+			ok = false;
+		}
+		
+		if (ok)
+		{
+			Warp warp = new Warp(name, x, y, z, pitch, yaw, dimension, player, false, WarpMod.id(icon), this.color, this.visible);
+			if (WarpModClient.onServer)
+			{
+				// Create packet buffer and send to server
+				FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+				buf.writeInt(ogName.length());
+				buf.writeCharSequence(ogName, Charset.defaultCharset());
+				buf.writeNbt(warp.toNbt());
+				PacketSender.c2s().send(WarpNetworking.CREATE, buf);
+				
+			} else
+			{
+				Warps warps = Warps.fromPlayer(player);
+				if (warps.exists(ogName))
+				{
+					warps.rename(ogName, name);
+				}
+				warps.createAddOrUpdate(warp);
+			}
+			
+			// Return to parent screen
+			assert minecraft != null;
+			minecraft.setScreen(_parent);
+		}
 	}
 	
 	
