@@ -34,7 +34,7 @@ public class ClientNetworking extends WarpNetworking
 		{
 			CompoundTag data = buf.readNbt();
 			assert data != null;
-			WarpModClient.dimensions = data.getAllKeys().toArray(new String[0]);
+			WarpModClient.dimensions = data.getAllKeys().stream().toList();
 		});
 		S2CPacketReceiver.register(PING, (client, handler, buf, responseSender) ->
 		{
