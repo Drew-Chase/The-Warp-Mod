@@ -4,3 +4,4 @@
 .idea
 /common/.architectury-transformer
 *.log
+/dist
