@@ -4,9 +4,10 @@
   "package": "chase.minecraft.architectury.warpmod.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "PlayerMixin"
   ],
   "client": [
+    "GameRendererMixin",
+    "InGameHudMixin"
   ],
   "injectors": {
     "defaultRequire": 1
