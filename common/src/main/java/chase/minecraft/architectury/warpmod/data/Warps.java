@@ -4,9 +4,9 @@ import chase.minecraft.architectury.warpmod.WarpMod;
 import chase.minecraft.architectury.warpmod.client.WarpModClient;
 import chase.minecraft.architectury.warpmod.client.gui.waypoint.WaypointColor;
 import chase.minecraft.architectury.warpmod.enums.WarpCreationResponseType;
+import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import dev.architectury.platform.Platform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.player.LocalPlayer;
@@ -223,11 +223,9 @@ public class Warps
 			tag.put("warps", toNbt());
 			try
 			{
-				File dir = Path.of(Platform.getGameFolder().toString(), "The Warp Mod", removeIllegalCharacters(data.ip)).toFile();
-				File file = Path.of(dir.getPath(), "warps.dat").toFile();
+				File file = Path.of(WorldUtils.getWarpDirectory(data).toString(), "warps.dat").toFile();
 				if (!file.exists())
 				{
-					dir.mkdirs();
 					if (!file.createNewFile())
 						return;
 					
@@ -247,7 +245,7 @@ public class Warps
 		{
 			try
 			{
-				File file = Path.of(Platform.getGameFolder().toString(), "The Warp Mod", removeIllegalCharacters(data.ip), "warps.dat").toFile();
+				File file = Path.of(WorldUtils.getWarpDirectory(data).toString(), "warps.dat").toFile();
 				if (file.exists())
 				{
 					fromNbt(NbtIo.readCompressed(file));
@@ -261,12 +259,6 @@ public class Warps
 				e.printStackTrace();
 			}
 		}
-	}
-	
-	
-	private static String removeIllegalCharacters(String path)
-	{
-		return path.replaceAll("[/\\\\?%*:|\"<>]", "-");
 	}
 	
 	

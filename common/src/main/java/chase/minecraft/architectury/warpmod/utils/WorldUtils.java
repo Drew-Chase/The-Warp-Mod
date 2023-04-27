@@ -1,8 +1,13 @@
 package chase.minecraft.architectury.warpmod.utils;
 
+import chase.minecraft.architectury.warpmod.WarpMod;
+import chase.minecraft.architectury.warpmod.client.WarpModClient;
 import chase.minecraft.architectury.warpmod.enums.SaftyCheckResponse;
 import chase.minecraft.architectury.warpmod.server.RepeatingServerTasks;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -13,13 +18,16 @@ import net.minecraft.server.bossevents.CustomBossEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector2i;
 import org.joml.Vector4f;
 
+import java.nio.file.Path;
 import java.util.Objects;
 
 /**
@@ -65,6 +73,53 @@ public class WorldUtils
 		}
 		return new Vector4f(center.toVector3f(), 0f);
 	}
+	
+	public static int getGroundY(Vector2i loc)
+	{
+		ClientLevel level = Minecraft.getInstance().level;
+		assert level != null;
+		BlockPos pos = BlockPos.containing(loc.x, level.getMaxBuildHeight() - 5, loc.y);
+		while (pos.getY() > level.getMinBuildHeight())
+		{
+			//-52, Y: 110, Z: -42
+//			if (level.getBlockState(pos).getBlock() == Blocks.VOID_AIR)
+//				break;
+			if (level.getBlockState(pos).getMaterial().blocksMotion() && level.getBlockState(pos).getBlock() != Blocks.BEDROCK)
+			{
+				return pos.getY();
+			} else
+			{
+				pos = pos.below();
+			}
+		}
+		if (pos.getX() == -52)
+		{
+			WarpMod.log.info("BLOCK: {}, X: {}, Y: {}, Z: {}", level.getBlockState(pos).getBlock().getName().getString(), pos.getX(), pos.getY(), pos.getZ());
+		}
+		if (pos.getZ() == -42)
+		{
+			WarpMod.log.info("BLOCK: {}, X: {}, Y: {}, Z: {}", level.getBlockState(pos).getBlock().getName().getString(), pos.getX(), pos.getY(), pos.getZ());
+		}
+		if (pos.getX() == -52 && pos.getY() == 110 && pos.getZ() == -42)
+		{
+			WarpMod.log.info("BLOCK: {}, BLOCKS MOTION: {}, BEDROCK?: {}", level.getBlockState(pos).getBlock().getName().getString(), level.getBlockState(pos).getMaterial().blocksMotion(), level.getBlockState(pos).getBlock() != Blocks.BEDROCK);
+			WarpMod.log.info("BLOCK: {}, X: {}, Y: {}, Z: {}", level.getBlockState(pos).getBlock().getName().getString(), pos.getX(), pos.getY(), pos.getZ());
+		}
+		return level.getMinBuildHeight() - 1;
+	}
+	
+	public static BlockPos getGroundPos(int x, int z)
+	{
+		return BlockPos.containing(x, getGroundY(new Vector2i(x, z)), z);
+	}
+	
+	public static BlockPos getGroundPos(BlockPos pos)
+	{
+		int x = pos.getX();
+		int z = pos.getZ();
+		return BlockPos.containing(x, getGroundY(new Vector2i(x, z)), z);
+	}
+	
 	
 	/**
 	 * The function checks if a block position is safe to stand on in a Minecraft server level.
@@ -283,5 +338,18 @@ public class WorldUtils
 	{
 		return level.getPath().replaceAll("_", " ").toUpperCase();
 	}
+	
+	public static Path getWarpDirectory(ServerData data)
+	{
+		return getWarpDirectory(data.ip);
+	}
+	
+	public static Path getWarpDirectory(String name)
+	{
+		Path path = Path.of(WarpModClient.WARP_DIRECTORY.toString(), name.replaceAll("[/\\\\?%*:|\"<>]", "-"));
+		path.toFile().mkdirs();
+		return path;
+	}
+	
 	
 }
