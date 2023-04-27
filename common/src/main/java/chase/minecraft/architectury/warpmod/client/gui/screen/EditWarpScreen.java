@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Random;
 
@@ -212,10 +212,10 @@ public class EditWarpScreen extends Screen
 	
 	private void initCycleButtons()
 	{
-		HashMap<ResourceLocation, String> dimensions = new HashMap<>();
-		for (int i = 0; i < WarpModClient.dimensions.length; i++)
+		LinkedHashMap<ResourceLocation, String> dimensions = new LinkedHashMap<>();
+		for (int i = 0; i < WarpModClient.dimensions.size(); i++)
 		{
-			ResourceLocation dimension = new ResourceLocation(WarpModClient.dimensions[i]);
+			ResourceLocation dimension = new ResourceLocation(WarpModClient.dimensions.get(i));
 			
 			dimensions.put(dimension, WorldUtils.getLevelName(dimension));
 		}

@@ -15,19 +15,19 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.function.Consumer;
 
 public class DropdownWidget<T> extends AbstractButton
 {
 	private final Consumer<T> onValueChange;
-	private final HashMap<T, String> items;
+	private final LinkedHashMap<T, String> items;
 	private T selectedItem;
 	private final T initialValue;
 	@Nullable
 	private T hoveredItem;
 	
-	public DropdownWidget(int x, int y, int width, int height, T initialValue, HashMap<T, String> items, Consumer<T> onValueChange)
+	public DropdownWidget(int x, int y, int width, int height, T initialValue, LinkedHashMap<T, String> items, Consumer<T> onValueChange)
 	{
 		super(x, y, width, height, Component.empty());
 		this.onValueChange = onValueChange;
@@ -41,7 +41,7 @@ public class DropdownWidget<T> extends AbstractButton
 	public DropdownWidget(int x, int y, int width, int height, T initialValue, T[] items, Consumer<T> onValueChange)
 	{
 		super(x, y, width, height, Component.empty());
-		HashMap<T, String> elements = new HashMap<>();
+		LinkedHashMap<T, String> elements = new LinkedHashMap<>();
 		for (T item : items)
 		{
 			elements.put(item, item.toString());
