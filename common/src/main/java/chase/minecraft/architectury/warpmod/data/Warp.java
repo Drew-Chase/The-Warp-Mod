@@ -1,5 +1,6 @@
 package chase.minecraft.architectury.warpmod.data;
 
+import chase.minecraft.architectury.warpmod.client.WarpModClient;
 import chase.minecraft.architectury.warpmod.client.gui.waypoint.WaypointColor;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import chase.minecraft.architectury.warpmod.utils.WorldUtils;
@@ -322,7 +323,10 @@ public class Warp
 		{
 			visible = tag.getBoolean("temp");
 		}
-		
+		if (!WarpModClient.dimensions.contains(dimension.toString()))
+		{
+			WarpModClient.dimensions.add(dimension.toString());
+		}
 		return new Warp(name, x, y, z, yaw, pitch, dimension, player, temp, icon, color, visible);
 		
 	}
