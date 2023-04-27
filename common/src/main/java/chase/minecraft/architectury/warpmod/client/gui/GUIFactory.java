@@ -1,6 +1,14 @@
 package chase.minecraft.architectury.warpmod.client.gui;
 
 
+import chase.minecraft.architectury.warpmod.client.gui.waypoint.WaypointOverlay;
+import chase.minecraft.architectury.warpmod.client.renderer.RenderProfiler;
+import chase.minecraft.architectury.warpmod.client.renderer.RenderUtils;
+import chase.minecraft.architectury.warpmod.data.Warp;
+import chase.minecraft.architectury.warpmod.data.Warps;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
@@ -90,5 +98,27 @@ public class GUIFactory
 		button.setTooltipDelay(0);
 		return button;
 	}
+	
+	public static void PreGameOverlay(PoseStack poseStack){
+		
+		RenderProfiler.begin("HUD");
+		for (Warp warp : Warps.fromPlayer(Minecraft.getInstance().player).getWarps())
+		{
+			WaypointOverlay overlay = new WaypointOverlay(warp);
+			overlay.render(poseStack);
+		}
+		RenderProfiler.pop();
+		
+	}
+	public static void PostGameOverlay(PoseStack poseStack){
+		
+		RenderProfiler.begin("Level");
+		RenderUtils.lastProjMat.set(RenderSystem.getProjectionMatrix());
+		RenderUtils.lastModMat.set(RenderSystem.getModelViewMatrix());
+		RenderUtils.lastWorldSpaceMatrix.set(poseStack.last().pose());
+		
+		RenderProfiler.pop();
+	}
+	
 	
 }
