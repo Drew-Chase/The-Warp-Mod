@@ -1,17 +1,23 @@
 package chase.minecraft.architectury.warpmod.client.gui.screen;
 
+import chase.minecraft.architectury.warpmod.client.WarpModClient;
+import chase.minecraft.architectury.warpmod.client.gui.GUIFactory;
 import chase.minecraft.architectury.warpmod.client.gui.component.WarpListComponent;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
+import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.PacketSender;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.LinkedHashMap;
 
 import static chase.minecraft.architectury.warpmod.client.gui.GUIFactory.createButton;
 
@@ -39,7 +45,8 @@ public class WarpListScreen extends Screen
 	protected void init()
 	{
 		PacketSender.c2s().send(WarpNetworking.PING, new FriendlyByteBuf(Unpooled.buffer()));
-		warpListComponent = addWidget(new WarpListComponent(this));
+		String filter = Minecraft.getInstance().player.level.dimension().location().toString();
+		warpListComponent = addWidget(new WarpListComponent(this, filter));
 		addRenderableWidget(createButton((width / 2) - 110, height - 25, 100, 20, Component.translatable("warpmod.create"), w ->
 		{
 			minecraft.setScreen(new EditWarpScreen(this));
@@ -47,6 +54,16 @@ public class WarpListScreen extends Screen
 		addRenderableWidget(createButton((width / 2) + 10, height - 25, 100, 20, CommonComponents.GUI_DONE, w ->
 		{
 			minecraft.setScreen(_parent);
+		}));
+		LinkedHashMap<String, String> dims = new LinkedHashMap<>();
+		dims.put("all", "ALL");
+		WarpModClient.dimensions.forEach(dim -> dims.put(dim, WorldUtils.getLevelName(new ResourceLocation(dim))));
+		addRenderableWidget(GUIFactory.createCycleButton(Component.empty(), width - 105, 5, 100, 20, filter, dims.values().toArray(new String[0]), Component.literal("Dimension filter"), value ->
+		{
+			warpListComponent.filter(value);
+		}, update ->
+		{
+			return Component.literal(update);
 		}));
 	}
 	

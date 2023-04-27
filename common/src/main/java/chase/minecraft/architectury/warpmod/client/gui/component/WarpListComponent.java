@@ -22,6 +22,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
 import java.util.List;
@@ -32,8 +33,10 @@ import static chase.minecraft.architectury.warpmod.client.gui.GUIFactory.createB
 public class WarpListComponent extends ContainerObjectSelectionList<WarpListComponent.Entry>
 {
 	private final Screen parent;
+	@Nullable
+	private String filter;
 	
-	public WarpListComponent(Screen parent)
+	public WarpListComponent(Screen parent, @Nullable String filter)
 	{
 		super(Minecraft.getInstance(), parent.width, parent.height + 15, 30, parent.height - 32, 30);
 		this.parent = parent;
@@ -42,12 +45,8 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 		{
 			PacketSender.c2s().send(WarpNetworking.LIST, new FriendlyByteBuf(Unpooled.buffer()));
 		}
-		Warps.loadClient();
-		for (Warp warp : Warps.fromPlayer(player).getWarps())
-		{
-			addEntry(new WarpEntry(warp));
-		}
-		
+		refreshEntries();
+		this.filter = filter;
 	}
 	
 	@Override
@@ -68,9 +67,25 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 		clearEntries();
 		for (Warp warp : Warps.fromPlayer(minecraft.player).getWarps())
 		{
-			addEntry(new WarpEntry(warp));
+			if (filter != null && !filter.isEmpty())
+			{
+				if (warp.getDimension().toString().equals(filter))
+				{
+					addEntry(new WarpEntry(warp));
+				}
+			} else
+			{
+				addEntry(new WarpEntry(warp));
+			}
 		}
 	}
+	
+	public void filter(@Nullable String filter)
+	{
+		this.filter = filter;
+		refreshEntries();
+	}
+	
 	
 	@Environment(EnvType.CLIENT)
 	public static abstract class Entry extends ContainerObjectSelectionList.Entry<Entry>
@@ -148,7 +163,7 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 			}
 			
 			// Render Label
-			WarpListComponent.this.minecraft.font.draw(poseStack, this.name, 20, (y + ((float) WarpListComponent.this.minecraft.font.lineHeight / 2)), 0xFF_FF_FF);
+			WarpListComponent.this.minecraft.font.draw(poseStack, this.name, 20, y + minecraft.font.lineHeight, 0xFF_FF_FF);
 			
 			// Render Buttons
 			int buttonPadding = 4;
@@ -162,7 +177,7 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 				buttonLastX -= 50 + buttonPadding;
 				button.setX(buttonLastX);
 				
-				button.setY(y);
+				button.setY(y + (widgetHeight / 2) - (button.getHeight() / 2));
 				button.render(poseStack, mouseX, mouseY, partialTicks);
 			}
 		}
