@@ -1,9 +1,6 @@
 package chase.minecraft.architectury.warpmod.mixin;
 
-import chase.minecraft.architectury.warpmod.client.gui.waypoint.WaypointOverlay;
-import chase.minecraft.architectury.warpmod.client.renderer.RenderProfiler;
-import chase.minecraft.architectury.warpmod.data.Warp;
-import chase.minecraft.architectury.warpmod.data.Warps;
+import chase.minecraft.architectury.warpmod.client.gui.GUIFactory;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -25,13 +22,6 @@ public abstract class InGameHudMixin
 	@Inject(at = @At("HEAD"), method = "render")
 	public void render(PoseStack poseStack, float partialTicks, CallbackInfo cbi)
 	{
-		
-		RenderProfiler.begin("HUD");
-		for (Warp warp : Warps.fromPlayer(minecraft.player).getWarps())
-		{
-			WaypointOverlay overlay = new WaypointOverlay(warp);
-			overlay.render(poseStack);
-		}
-		RenderProfiler.pop();
+		GUIFactory.PreGameOverlay(poseStack);
 	}
 }
