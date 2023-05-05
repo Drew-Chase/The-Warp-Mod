@@ -1,34 +1,41 @@
 package chase.minecraft.architectury.warpmod.worldmap;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import chase.minecraft.architectury.warpmod.WarpMod;
 
-public class  WorldmapThread extends Thread implements Runnable
+import java.util.Timer;
+
+public class WorldmapThread extends Thread implements Runnable
 {
 	private static final WorldmapThread instance = new WorldmapThread();
+	private Timer timer;
 	
 	protected WorldmapThread()
 	{
 		super("Warp Map Rendering Thread");
-		Timer timer = new Timer();
-		TimerTask task = new TimerTask()
-		{
-			@Override
-			public void run()
-			{
-				WorldmapThread.instance.start();
-			}
-		};
-		timer.scheduleAtFixedRate(task, 5000, 0);
 	}
 	
 	@Override
-	public void run()
+	public void start()
 	{
-		super.run();
-		MapRegions.getInstance().update();
+		super.start();
+		WarpMod.log.info("Thread is RUNNING!");
+//		timer = new Timer();
+//		timer.scheduleAtFixedRate(new TimerTask()
+//		{
+//			@Override
+//			public void run()
+//			{
+//				MapRegions.getInstance().update();
+//			}
+//		}, 5000, 0);
 	}
 	
+	@Override
+	public void interrupt()
+	{
+		super.interrupt();
+		timer.cancel();
+	}
 	
 	public static WorldmapThread getInstance()
 	{

@@ -7,7 +7,6 @@ import chase.minecraft.architectury.warpmod.server.RepeatingServerTasks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -27,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import org.joml.Vector4f;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -339,16 +339,26 @@ public class WorldUtils
 		return level.getPath().replaceAll("_", " ").toUpperCase();
 	}
 	
-	public static Path getWarpDirectory(ServerData data)
-	{
-		return getWarpDirectory(data.ip);
-	}
 	
-	public static Path getWarpDirectory(String name)
+	public static Path getWarpDirectory()
 	{
+		Minecraft client = Minecraft.getInstance();
+		String name = client.isSingleplayer() ? Objects.requireNonNull(client.getSingleplayerServer()).getWorldData().getLevelName() : Objects.requireNonNull(client.getCurrentServer()).ip;
 		Path path = Path.of(WarpModClient.WARP_DIRECTORY.toString(), name.replaceAll("[/\\\\?%*:|\"<>]", "-"));
 		path.toFile().mkdirs();
 		return path;
+	}
+	
+	public static Path getMapDirectory()
+	{
+		Minecraft client = Minecraft.getInstance();
+		assert client.level != null;
+		return Path.of(getWarpDirectory().toString(), "maps", client.level.dimension().location().getPath());
+	}
+	
+	public static File getWarpDataFile()
+	{
+		return Path.of(getWarpDirectory().toString(), "warps.dat").toFile();
 	}
 	
 	

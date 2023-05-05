@@ -2,7 +2,7 @@ package chase.minecraft.architectury.warpmod.networking;
 
 import chase.minecraft.architectury.warpmod.WarpMod;
 import chase.minecraft.architectury.warpmod.data.Warp;
-import chase.minecraft.architectury.warpmod.data.Warps;
+import chase.minecraft.architectury.warpmod.data.WarpManager;
 import dev.architectury.platform.Platform;
 import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.C2SPacketReceiver;
@@ -23,8 +23,25 @@ public class ServerNetworking extends WarpNetworking
 	{
 		C2SPacketReceiver.register(LIST, (server, player, handler, buf, responseSender) ->
 		{
+			WarpManager warpManager = WarpManager.fromPlayer(player);
+//			try
+//			{
+//				CompoundTag client = buf.readAnySizeNbt();
+//				if (client != null)
+//				{
+//					ListTag list = client.getList("warpManager", Tag.TAG_COMPOUND);
+//					for (Tag tag : list)
+//					{
+//						CompoundTag item = (CompoundTag) tag;
+//						warpManager.createAddOrUpdate(Warp.fromTag(item, player));
+//					}
+//				}
+//			} catch (Exception e)
+//			{
+//
+//			}
 			CompoundTag data = new CompoundTag();
-			data.put("warps", Warps.fromPlayer(player).toNbt());
+			data.put("warpManager", warpManager.toNbt());
 			FriendlyByteBuf dataBuf = new FriendlyByteBuf(Unpooled.buffer());
 			dataBuf.writeNbt(data);
 			server.execute(() ->
@@ -38,10 +55,10 @@ public class ServerNetworking extends WarpNetworking
 			{
 				int length = buf.readInt();
 				String name = buf.readCharSequence(length, Charset.defaultCharset()).toString();
-				Warps warps = Warps.fromPlayer(player);
-				if (warps.exists(name))
+				WarpManager warpManager = WarpManager.fromPlayer(player);
+				if (warpManager.exists(name))
 				{
-					warps.get(name).teleport(player);
+					warpManager.get(name).teleport(player);
 				}
 			}
 		});
@@ -50,7 +67,7 @@ public class ServerNetworking extends WarpNetworking
 		{
 			int length = buf.readInt();
 			String name = buf.readCharSequence(length, Charset.defaultCharset()).toString();
-			Warps.fromPlayer(player).remove(name);
+			WarpManager.fromPlayer(player).remove(name);
 		});
 		
 		C2SPacketReceiver.register(CREATE, (server, player, handler, buf, responseSender) ->
@@ -60,23 +77,23 @@ public class ServerNetworking extends WarpNetworking
 			CompoundTag tag = buf.readNbt();
 			assert tag != null;
 			Warp warp = Warp.fromTag(tag, player);
-			Warps warps = Warps.fromPlayer(player);
+			WarpManager warpManager = WarpManager.fromPlayer(player);
 			if (!ogName.isEmpty() && !warp.getName().equals(ogName))
 			{
-				if (warps.exists(ogName))
+				if (warpManager.exists(ogName))
 				{
-					warps.rename(ogName, warp.getName());
+					warpManager.rename(ogName, warp.getName());
 				}
 			} else
 			{
-				warps.createAddOrUpdate(warp);
+				warpManager.createOrUpdate(warp);
 			}
 			
 			
 			server.execute(() ->
 			{
 				CompoundTag data = new CompoundTag();
-				data.put("warps", Warps.fromPlayer(player).toNbt());
+				data.put("warpManager", WarpManager.fromPlayer(player).toNbt());
 				FriendlyByteBuf dataBuf = new FriendlyByteBuf(Unpooled.buffer());
 				dataBuf.writeNbt(data);
 				responseSender.send(LIST, dataBuf);
@@ -107,7 +124,7 @@ public class ServerNetworking extends WarpNetworking
 			data.writeInt(version.length());
 			data.writeCharSequence(version, Charset.defaultCharset());
 			data.writeBoolean(isOP);
-			
+
 //			data.write
 			try
 			{

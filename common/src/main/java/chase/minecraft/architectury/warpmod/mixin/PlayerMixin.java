@@ -1,7 +1,7 @@
 package chase.minecraft.architectury.warpmod.mixin;
 
 import chase.minecraft.architectury.warpmod.data.Warp;
-import chase.minecraft.architectury.warpmod.data.Warps;
+import chase.minecraft.architectury.warpmod.data.WarpManager;
 import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,14 +20,14 @@ public class PlayerMixin
 	public void addAdditionalSaveData(CompoundTag compoundTag, CallbackInfo cbi)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		compoundTag.put("warps", Warps.fromPlayer(player).toNbt());
+		compoundTag.put("warps", WarpManager.fromPlayer(player).toNbt());
 	}
 	
 	@Inject(at = @At("RETURN"), method = "readAdditionalSaveData")
 	public void readAdditionalSaveData(CompoundTag compoundTag, CallbackInfo cbi)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		Warps.fromPlayer(player).fromNbt(compoundTag);
+		WarpManager.fromPlayer(player).fromNbt(compoundTag);
 	}
 	
 	@Inject(at = @At("HEAD"), method = "disconnect")
@@ -42,7 +42,7 @@ public class PlayerMixin
 	{
 		info.cancel();
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		Warps.fromPlayer(player).createDeath();
+		WarpManager.fromPlayer(player).createDeath();
 		WorldUtils.removeTravelBar(player);
 	}
 	
@@ -50,12 +50,12 @@ public class PlayerMixin
 	public void tick(CallbackInfo cb)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		Warps warps = Warps.fromPlayer(player);
-		for (Warp warp : warps.getWarps())
+		WarpManager warpManager = WarpManager.fromPlayer(player);
+		for (Warp warp : warpManager.getWarps())
 		{
 			if (warp.temporary() && warp.distance() < 10)
 			{
-				warps.remove(warp.getName());
+				warpManager.remove(warp.getName());
 			}
 		}
 	}

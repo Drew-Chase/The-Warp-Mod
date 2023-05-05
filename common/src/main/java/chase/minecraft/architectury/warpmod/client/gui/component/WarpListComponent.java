@@ -3,7 +3,7 @@ package chase.minecraft.architectury.warpmod.client.gui.component;
 import chase.minecraft.architectury.warpmod.client.WarpModClient;
 import chase.minecraft.architectury.warpmod.client.gui.screen.EditWarpScreen;
 import chase.minecraft.architectury.warpmod.data.Warp;
-import chase.minecraft.architectury.warpmod.data.Warps;
+import chase.minecraft.architectury.warpmod.data.WarpManager;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -63,9 +63,9 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 	
 	public void refreshEntries()
 	{
-		Warps.loadClient();
+		WarpManager.loadClient();
 		clearEntries();
-		for (Warp warp : Warps.fromPlayer(minecraft.player).getWarps())
+		for (Warp warp : WarpManager.fromPlayer(minecraft.player).getWarps())
 		{
 			if (filter != null && !filter.isEmpty())
 			{
@@ -116,7 +116,7 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 						{
 							assert Minecraft.getInstance().player != null;
 							Minecraft.getInstance().player.connection.sendCommand("execute in %s run tp @s %f %f %f %f %f".formatted(warp.getDimension().toString(), warp.getX(), warp.getY(), warp.getZ(), warp.getPitch(), warp.getYaw()));
-							Warps.fromPlayer(Minecraft.getInstance().player).createBack();
+							WarpManager.fromPlayer(Minecraft.getInstance().player).createBack();
 						}
 						Minecraft.getInstance().setScreen(null);
 					}),
@@ -137,7 +137,7 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 							}
 						} else
 						{
-							Warps.fromPlayer(minecraft.player).remove(warp.getName());
+							WarpManager.fromPlayer(minecraft.player).remove(warp.getName());
 							refreshEntries();
 						}
 					}), createButton(0, 0, 50, 20, Component.translatable("warpmod.edit"), button ->

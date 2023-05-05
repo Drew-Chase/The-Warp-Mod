@@ -6,7 +6,7 @@ import chase.minecraft.architectury.warpmod.client.gui.component.ColorButton;
 import chase.minecraft.architectury.warpmod.client.gui.component.DropdownWidget;
 import chase.minecraft.architectury.warpmod.client.gui.waypoint.WaypointColor;
 import chase.minecraft.architectury.warpmod.data.Warp;
-import chase.minecraft.architectury.warpmod.data.Warps;
+import chase.minecraft.architectury.warpmod.data.WarpManager;
 import chase.minecraft.architectury.warpmod.data.WaypointIcons;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import chase.minecraft.architectury.warpmod.utils.WorldUtils;
@@ -343,12 +343,12 @@ public class EditWarpScreen extends Screen
 				
 			} else
 			{
-				Warps warps = Warps.fromPlayer(player);
-				if (warps.exists(ogName))
+				WarpManager warpManager = WarpManager.fromPlayer(player);
+				if (warpManager.exists(ogName))
 				{
-					warps.rename(ogName, name);
+					warpManager.rename(ogName, name);
 				}
-				warps.createAddOrUpdate(warp);
+				warpManager.createOrUpdate(warp);
 			}
 			
 			// Return to parent screen

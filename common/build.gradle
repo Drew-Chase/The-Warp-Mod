@@ -5,7 +5,7 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
     // Bad Packets
-    modCompileOnly "lol.bai:badpackets:forge-0.4.1"
+    modCompileOnly "lol.bai:badpackets:forge-${rootProject.badpackets_version}"
 }
 
 repositories {

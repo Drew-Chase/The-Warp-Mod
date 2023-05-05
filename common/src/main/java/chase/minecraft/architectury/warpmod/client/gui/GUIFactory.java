@@ -5,7 +5,7 @@ import chase.minecraft.architectury.warpmod.client.gui.waypoint.WaypointOverlay;
 import chase.minecraft.architectury.warpmod.client.renderer.RenderProfiler;
 import chase.minecraft.architectury.warpmod.client.renderer.RenderUtils;
 import chase.minecraft.architectury.warpmod.data.Warp;
-import chase.minecraft.architectury.warpmod.data.Warps;
+import chase.minecraft.architectury.warpmod.data.WarpManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -102,7 +102,7 @@ public class GUIFactory
 	public static void PreGameOverlay(PoseStack poseStack){
 		
 		RenderProfiler.begin("HUD");
-		for (Warp warp : Warps.fromPlayer(Minecraft.getInstance().player).getWarps())
+		for (Warp warp : WarpManager.fromPlayer(Minecraft.getInstance().player).getWarps())
 		{
 			WaypointOverlay overlay = new WaypointOverlay(warp);
 			overlay.render(poseStack);

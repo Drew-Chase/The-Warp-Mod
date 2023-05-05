@@ -1,7 +1,7 @@
 package chase.minecraft.architectury.warpmod.commands;
 
 import chase.minecraft.architectury.warpmod.data.Warp;
-import chase.minecraft.architectury.warpmod.data.Warps;
+import chase.minecraft.architectury.warpmod.data.WarpManager;
 import chase.minecraft.architectury.warpmod.enums.WarpCreationResponseType;
 import chase.minecraft.architectury.warpmod.server.RepeatingServerTasks;
 import chase.minecraft.architectury.warpmod.server.TimedServerTask;
@@ -62,7 +62,7 @@ public class WarpCommand
 		LiteralArgumentBuilder<CommandSourceStack> node = literal("warp")
 				.then(nameArg
 						.requires(ctx -> ctx.hasPermission(4))
-						.suggests((ctx, s) -> Warps.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
+						.suggests((ctx, s) -> WarpManager.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
 						.executes(ctx ->
 						{
 							String name = getString(ctx, "name");
@@ -84,7 +84,7 @@ public class WarpCommand
 				)
 				.then(literal("set")
 						.then(nameArg
-								.suggests((ctx, s) -> Warps.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
+								.suggests((ctx, s) -> WarpManager.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
 								.then(argument("location", Vec3Argument.vec3())
 										.then(argument("rotation", rotation())
 												.then(argument("dimension", dimension())
@@ -117,7 +117,7 @@ public class WarpCommand
 						.executes(ctx -> listWarps(ctx) ? 1 : 0)
 				).then(literal("remove")
 						.then(nameArg
-								.suggests((ctx, s) -> Warps.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
+								.suggests((ctx, s) -> WarpManager.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
 								.executes(ctx -> removeWarp(ctx, getString(ctx, "name")) ? 1 : 0)
 						)
 				).then(literal("random")
@@ -130,7 +130,7 @@ public class WarpCommand
 						.executes(ctx -> teleportToRandom(ctx) ? 1 : 0)
 				).then(literal("rename")
 						.then(argument("old", greedyString())
-								.suggests((ctx, s) -> Warps.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
+								.suggests((ctx, s) -> WarpManager.fromPlayer(ctx.getSource().getPlayer()).suggestions(s))
 								.then(argument("new", greedyString())
 										.then(argument("overwrite", bool())
 												.executes(ctx -> renameWarp(ctx, getString(ctx, "old"), getString(ctx, "new"), getBool(ctx, "overwrite")) ? 1 : 0)
@@ -143,7 +143,7 @@ public class WarpCommand
 				).then(literal("invite")
 						.then(argument("player", player())
 								.then(argument("warp", greedyString())
-										.suggests((ctx, builder) -> Warps.fromPlayer(ctx.getSource().getPlayer()).suggestions(builder))
+										.suggests((ctx, builder) -> WarpManager.fromPlayer(ctx.getSource().getPlayer()).suggestions(builder))
 										.executes(ctx -> invite(ctx, getString(ctx, "warp"), EntityArgument.getPlayer(ctx, "player")) ? 1 : 0)
 								)
 						)
@@ -159,7 +159,7 @@ public class WarpCommand
 								{
 									List<String> sug = new ArrayList<>();
 									sug.addAll(ctx.getSource().getOnlinePlayerNames());
-									sug.addAll(List.of(Warps.fromPlayer(ctx.getSource().getPlayer()).getWarpNames()));
+									sug.addAll(List.of(WarpManager.fromPlayer(ctx.getSource().getPlayer()).getWarpNames()));
 									return SharedSuggestionProvider.suggest(sug, builder);
 								})
 								.then(argument("useActionBar", bool())
@@ -192,13 +192,13 @@ public class WarpCommand
 	{
 		if (context.getSource().isPlayer())
 		{
-			Warps warps = Warps.fromPlayer(context.getSource().getPlayer());
-			if (!warps.exists(name))
+			WarpManager warpManager = WarpManager.fromPlayer(context.getSource().getPlayer());
+			if (!warpManager.exists(name))
 			{
 				context.getSource().sendFailure(Component.literal(String.format("Warp does NOT exist: %s", name)));
 				return false;
 			}
-			warps.get(name).teleport(context.getSource().getPlayer());
+			warpManager.get(name).teleport(context.getSource().getPlayer());
 			context.getSource().sendSuccess(Component.literal(String.format("%sWarped to: %s%s", ChatFormatting.GREEN, ChatFormatting.GOLD, name)), false);
 			return true;
 		}
@@ -263,7 +263,7 @@ public class WarpCommand
 				context.getSource().sendFailure(Component.literal("Player was not found!"));
 				return false;
 			}
-			Warps.fromPlayer(player).createBack();
+			WarpManager.fromPlayer(player).createBack();
 			
 			BlockPos pos = player.getLevel().getSharedSpawnPos();
 			player.teleportTo(Objects.requireNonNull(player.getServer()).overworld(), pos.getX() + .5, pos.getY(), pos.getZ() + .5, player.getYRot(), player.getXRot());
@@ -463,7 +463,7 @@ public class WarpCommand
 				return false;
 			}
 			Warp warp = new Warp(name, x, y, z, yaw, pitch, dimension.dimension().location(), player);
-			WarpCreationResponseType response = Warps.fromPlayer(player).createAddOrUpdate(warp);
+			WarpCreationResponseType response = WarpManager.fromPlayer(player).createOrUpdate(warp);
 			
 			if (response == WarpCreationResponseType.FailureDueToDuplicate)
 			{
@@ -510,13 +510,13 @@ public class WarpCommand
 				context.getSource().sendFailure(Component.literal("Player was not found!"));
 				return false;
 			}
-			Warps warps = Warps.fromPlayer(player);
-			if (!warps.exists(name))
+			WarpManager warpManager = WarpManager.fromPlayer(player);
+			if (!warpManager.exists(name))
 			{
 				context.getSource().sendFailure(Component.literal("Warp does NOT exist!"));
 				return false;
 			}
-			if (warps.exists(new_name))
+			if (warpManager.exists(new_name))
 			{
 				if (!overwrite)
 				{
@@ -524,7 +524,7 @@ public class WarpCommand
 					return false;
 				}
 			}
-			warps.rename(name, new_name);
+			warpManager.rename(name, new_name);
 			
 			context.getSource().sendSuccess(Component.literal(String.format("%sWarp renamed %s%s %s-> %s%s", ChatFormatting.GREEN, ChatFormatting.GOLD, name, ChatFormatting.GOLD, ChatFormatting.GREEN, new_name)), false);
 			return true;
@@ -545,7 +545,7 @@ public class WarpCommand
 	{
 		if (context.getSource().isPlayer())
 		{
-			if (Warps.fromPlayer(context.getSource().getPlayer()).remove(name))
+			if (WarpManager.fromPlayer(context.getSource().getPlayer()).remove(name))
 			{
 				context.getSource().sendSuccess(Component.literal(String.format("%sWarp removed: %s%s", ChatFormatting.GREEN, ChatFormatting.GOLD, name)), false);
 			} else
@@ -597,20 +597,20 @@ public class WarpCommand
 				{
 					if (!requestingPlayer.hasPermissions(4))
 					{
-						context.getSource().sendFailure(Component.literal("You do NOT have permissions to view other players warps."));
+						context.getSource().sendFailure(Component.literal("You do NOT have permissions to view other players warpManager."));
 						return false;
 					}
 				}
 			}
 		}
-		Warps warps = Warps.fromPlayer(player);
+		WarpManager warpManager = WarpManager.fromPlayer(player);
 		MutableComponent component = Component.literal("");
 		ChatFormatting primary = ChatFormatting.GREEN;
 		ChatFormatting secondary = ChatFormatting.GOLD;
-		for (Warp warp : warps.getWarps())
+		for (Warp warp : warpManager.getWarps())
 		{
 			ClickEvent click = new ClickEvent(ClickEvent.Action.RUN_COMMAND, String.format("/warp %s", warp.getName()));
-			HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Warps you to %s".formatted(warp.getName())));
+			HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("WarpManager you to %s".formatted(warp.getName())));
 			component.append(Component.literal("%s: ".formatted(warp.getName())).withStyle(style -> style.applyFormat(primary).withHoverEvent(hover).withClickEvent(click)));
 			component.append(Component.literal("%s[X: %s%d%s, Y: %s%d%s, Z: %s%d%s]".formatted(primary, secondary, (int) warp.getX(), primary, secondary, (int) warp.getY(), primary, secondary, (int) warp.getZ(), primary)));
 			component.append(Component.literal(" %sDIM: %s%s\n".formatted(primary, secondary, warp.getDimension().getPath())));
@@ -640,7 +640,7 @@ public class WarpCommand
 				context.getSource().sendFailure(Component.literal("Unable to find player!"));
 				return false;
 			}
-			Warps playerWarp = Warps.fromPlayer(player);
+			WarpManager playerWarp = WarpManager.fromPlayer(player);
 			if (playerWarp.exists(warpName))
 			{
 				Warp warp = playerWarp.get(warpName);
@@ -685,7 +685,7 @@ public class WarpCommand
 					TimedServerTask task = Objects.requireNonNull(TimedServerTasks.Instance.get(inviteCode));
 					if (!task.isCanceled())
 					{
-						Warps.fromPlayer(toPlayer).createBack();
+						WarpManager.fromPlayer(toPlayer).createBack();
 						toPlayer.teleportTo(player.getLevel(), player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
 						task.cancel();
 						toPlayer.sendSystemMessage(Component.literal("%sWarped to %s%s".formatted(ChatFormatting.GREEN, ChatFormatting.GOLD, player.getDisplayName().getString())));
@@ -766,7 +766,7 @@ public class WarpCommand
 					player.displayClientMessage(Component.literal(""), true);
 				return true;
 			}
-			Warps warps = Warps.fromPlayer(player);
+			WarpManager warpManager = WarpManager.fromPlayer(player);
 			boolean isPlayer = false;
 			@Nullable ServerPlayer otherPlayer = null;
 			for (ServerPlayer p : player.getServer().getPlayerList().getPlayers())
@@ -778,7 +778,7 @@ public class WarpCommand
 					break;
 				}
 			}
-			if (warps.exists(name) || isPlayer)
+			if (warpManager.exists(name) || isPlayer)
 			{
 				if (RepeatingServerTasks.Instance.exists(player.getDisplayName().getString()))
 				{
@@ -788,7 +788,7 @@ public class WarpCommand
 				@Nullable Warp warp;
 				if (!isPlayer)
 				{
-					warp = warps.get(name);
+					warp = warpManager.get(name);
 					diffDim = !warp.getDimension().equals(player.getLevel().dimension().location());
 				} else
 				{

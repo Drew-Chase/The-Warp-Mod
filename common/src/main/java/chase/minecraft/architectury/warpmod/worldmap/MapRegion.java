@@ -19,7 +19,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Objects;
 
 public class MapRegion
 {
@@ -45,6 +44,8 @@ public class MapRegion
 		int cz = y * SIZE;
 		BlockPos startPos = WorldUtils.getGroundPos(cx, cz);
 		BlockPos currentPos = startPos;
+		if (!level.isLoaded(currentPos))
+			return;
 		for (int i = 0; i < SIZE; i++)
 		{
 			for (int j = 0; j < SIZE; j++)
@@ -84,8 +85,7 @@ public class MapRegion
 		{
 			Minecraft client = Minecraft.getInstance();
 			assert client.level != null;
-			String name = client.isSingleplayer() ? Objects.requireNonNull(client.getSingleplayerServer()).getWorldData().getLevelName() : Objects.requireNonNull(client.getCurrentServer()).ip;
-			Path dir = Path.of(WorldUtils.getWarpDirectory(name).toString(), "maps", client.level.dimension().location().getPath());
+			Path dir = WorldUtils.getMapDirectory();
 			dir.toFile().mkdirs();
 			File file = Path.of(dir.toString(), this + ".png").toFile();
 			ImageIO.write(image, "png", file);

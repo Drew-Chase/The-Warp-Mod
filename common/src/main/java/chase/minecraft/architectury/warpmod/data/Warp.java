@@ -31,6 +31,8 @@ public class Warp
 	private ResourceLocation dimension;
 	private final Player player;
 	
+	private final boolean deathpoint;
+	
 	private ResourceLocation icon = WaypointIcons.DEFAULT;
 	private boolean temporary = false;
 	private boolean visible = true;
@@ -39,16 +41,16 @@ public class Warp
 	
 	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player)
 	{
-		this(name, x, y, z, pitch, yaw, dimension, player, false, WaypointIcons.DEFAULT, WaypointColor.WHITE, true);
+		this(name, x, y, z, pitch, yaw, dimension, player, false, WaypointIcons.DEFAULT, WaypointColor.WHITE, true, false);
 	}
 	
 	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary)
 	{
-		this(name, x, y, z, pitch, yaw, dimension, player, temporary, WaypointIcons.DEFAULT, WaypointColor.WHITE, true);
+		this(name, x, y, z, pitch, yaw, dimension, player, temporary, WaypointIcons.DEFAULT, WaypointColor.WHITE, true, false);
 	}
 	
 	
-	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary, ResourceLocation icon, WaypointColor color, boolean visible)
+	public Warp(String name, double x, double y, double z, float pitch, float yaw, ResourceLocation dimension, Player player, boolean temporary, ResourceLocation icon, WaypointColor color, boolean visible, boolean deathpoint)
 	{
 		this.name = name;
 		this.x = x;
@@ -62,6 +64,7 @@ public class Warp
 		this.icon = icon;
 		this.color = color;
 		this.visible = visible;
+		this.deathpoint = deathpoint;
 	}
 	
 	/**
@@ -168,6 +171,12 @@ public class Warp
 	 */
 	public boolean visible() {return visible;}
 	
+	public boolean isDeathpoint()
+	
+	{
+		return deathpoint;
+	}
+	
 	/**
 	 * This Java function updates the location and orientation of a resource with a given name and dimension.
 	 *
@@ -248,13 +257,13 @@ public class Warp
 	{
 		if (player != null)
 		{
-			Warps.fromPlayer(player).createBack();
+			WarpManager.fromPlayer(player).createBack();
 			ServerLevel level = WorldUtils.getLevelFromID(player.server, dimension);
 			if (level != null)
 			{
 				player.teleportTo(level, x, y, z, pitch, yaw);
 			}
-			Warps.fromPlayer(player).createBack();
+			WarpManager.fromPlayer(player).createBack();
 		} else
 		{
 			FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
@@ -283,6 +292,7 @@ public class Warp
 		tag.putString("icon", WaypointIcons.getName(icon));
 		tag.putBoolean("temp", temporary);
 		tag.putBoolean("visible", visible);
+		tag.putBoolean("deathpoint", deathpoint);
 		return tag;
 	}
 	
@@ -304,6 +314,7 @@ public class Warp
 		ResourceLocation dimension = new ResourceLocation(tag.getString("dimension"));
 		boolean visible = true;
 		boolean temp = false;
+		boolean deathpoint = false;
 		WaypointColor color = WaypointColor.WHITE;
 		ResourceLocation icon = WaypointIcons.DEFAULT;
 		
@@ -323,11 +334,15 @@ public class Warp
 		{
 			visible = tag.getBoolean("temp");
 		}
+		if (tag.contains("deathpoint"))
+		{
+			deathpoint = tag.getBoolean("deathpoint");
+		}
 		if (!WarpModClient.dimensions.contains(dimension.toString()))
 		{
 			WarpModClient.dimensions.add(dimension.toString());
 		}
-		return new Warp(name, x, y, z, yaw, pitch, dimension, player, temp, icon, color, visible);
+		return new Warp(name, x, y, z, yaw, pitch, dimension, player, temp, icon, color, visible, deathpoint);
 		
 	}
 	

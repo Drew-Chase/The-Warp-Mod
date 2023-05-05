@@ -1,5 +1,7 @@
 package chase.minecraft.architectury.warpmod.worldmap;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 
@@ -9,7 +11,7 @@ import java.util.HashMap;
 public class MapRegions
 {
 	private static MapRegions instance = new MapRegions();
-	private HashMap<String, MapRegion> regions;
+	private final HashMap<String, MapRegion> regions;
 	
 	protected MapRegions()
 	{
@@ -45,6 +47,10 @@ public class MapRegions
 	
 	public void update()
 	{
+		Minecraft client = Minecraft.getInstance();
+		LocalPlayer player = client.player;
+		assert player != null;
+		getOrAdd(player.getOnPos());
 		get().forEach(MapRegion::update);
 	}
 	

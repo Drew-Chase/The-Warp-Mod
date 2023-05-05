@@ -1,8 +1,11 @@
 package chase.minecraft.architectury.warpmod;
 
+import chase.minecraft.architectury.warpmod.client.WarpModClient;
 import chase.minecraft.architectury.warpmod.commands.WarpCommand;
 import chase.minecraft.architectury.warpmod.networking.ServerNetworking;
+import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
+import dev.architectury.event.events.common.PlayerEvent;
 import net.minecraft.resources.ResourceLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,6 +32,11 @@ public class WarpMod
 			WarpCommand.register(dispatcher);
 		});
 		ServerNetworking.init();
+		
+		PlayerEvent.CHANGE_DIMENSION.register((player, oldLevel, newLevel) ->
+		{
+			WorldUtils.removeTravelBar(player);
+		});
 	}
 	
 	/**
