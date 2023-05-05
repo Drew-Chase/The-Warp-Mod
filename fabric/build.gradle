@@ -42,7 +42,7 @@ dependencies {
     }
 
     // Bad Packets
-    modRuntimeOnly "lol.bai:badpackets:fabric-0.4.1"
+    modRuntimeOnly "lol.bai:badpackets:fabric-${badpackets_version}"
 }
 
 processResources {
