@@ -1,8 +1,11 @@
 ![](https://cdn-raw.modrinth.com/data/ewLFY6nv/images/3350be212023e1dffd5b6e1462010514769062c3.jpg)
-
 # Description
+Forge:   
+![Forge](https://cf.way2muchnoise.eu/319723.svg) ![](https://cf.way2muchnoise.eu/versions/319723.svg)   
+Fabric:   
+![Fabric](https://cf.way2muchnoise.eu/451406.svg) ![](https://cf.way2muchnoise.eu/versions/451406.svg)
 
-It allows teleporting to various warps, This mod does NOT need to be installed client-side.
+It allows teleporting to various warpManager, This mod does NOT need to be installed client-side.
 
 # Clientside
 
@@ -21,11 +24,11 @@ Warps can now show in game via waypoints.
 ![keybindings](docs/images/keybindings.png)
 
 ## Warp Menu
-This is a menu to show a list of all of your warps, remove, edit and teleport to them.
+This is a menu to show a list of all of your warpManager, remove, edit and teleport to them.
 ![warp menu ](docs/images/warpmenu.png)
 
 ## Edit/Create Warp Screen
-This is the menu that will allow you to create and edit your warps
+This is the menu that will allow you to create and edit your warpManager
 ![create warp](docs/images/createwarp.png)
 
 
@@ -34,7 +37,7 @@ This is the menu that will allow you to create and edit your warps
 ## Commands
 
 - `/warp set <name>` - *creates a warp*
-- `/warp list` - *lists all warps created*
+- `/warp list` - *lists all warpManager created*
 - `/warp back` - *when you teleport using warp a "warp back" is automatically created.*
 - `/warp random [<max>] [<min>]` - *randomly teleports the player using the max and min. by default max is **500** and
   min is **25** blocks away.*
