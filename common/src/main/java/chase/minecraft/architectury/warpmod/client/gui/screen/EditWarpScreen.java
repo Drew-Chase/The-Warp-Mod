@@ -331,7 +331,7 @@ public class EditWarpScreen extends Screen
 		
 		if (ok)
 		{
-			Warp warp = new Warp(name, x, y, z, pitch, yaw, dimension, player, false, WarpMod.id(icon), this.color, this.visible);
+			Warp warp = new Warp(name, x, y, z, pitch, yaw, dimension, player, false, WarpMod.id(icon), this.color, this.visible, false);
 			if (WarpModClient.onServer)
 			{
 				// Create packet buffer and send to server
