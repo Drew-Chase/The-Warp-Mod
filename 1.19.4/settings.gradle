@@ -8,11 +8,6 @@ pluginManagement {
 }
 
 
-
-// 1.19.4
-include(":1.19.4")
-project(":1.19.4").projectDir = "$rootDir/1.19.4" as File
-
-// 1.19
-include(":1.19")
-project(":1.19").projectDir = "$rootDir/1.19" as File
+include("common")
+include("fabric")
+include("forge")

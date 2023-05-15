@@ -1,9 +1,7 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
-
-archivesBaseName = "${rootProject.archives_base_name}-${rootProject.minecraft_version}-fabric"
-
+archivesBaseName = "${rootProject.archives_base_name}-${project.minecraft_version}-${project.name}"
 architectury {
     platformSetupLoomIde()
     fabric()
@@ -35,7 +33,7 @@ dependencies {
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
-
+    rootProject.rootProject
     // ModMenu
     modApi("com.terraformersmc:modmenu:${rootProject.modmenu_version}") {
         exclude group: "net.fabricmc.fabric-api"
