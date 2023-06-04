@@ -38,6 +38,10 @@ processResources {
 
     filesMatching("META-INF/mods.toml") {
         expand "version": project.version
+        expand "minecraft": rootProject.minecraft_version
+        expand "badpackets": rootProject.badpackets_version
+        expand "architectury": rootProject.architectury_version
+        expand "description": rootProject.description
     }
 }
 

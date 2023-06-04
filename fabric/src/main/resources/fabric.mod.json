@@ -3,7 +3,7 @@
   "id": "warpmod",
   "version": "${version}",
   "name": "The Warp Mod",
-  "description": "The WarpMod allows the creation of and travel to various warps locations.",
+  "description": "${description}",
   "authors": [
     "Drew Chase"
   ],
@@ -27,10 +27,10 @@
     "warpmod-common.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.14.18",
-    "minecraft": ">=1.19.4",
-    "architectury": ">=5.14.76",
-    "badpackets": ">=0.4.1"
-
+    "fabricloader": ">=${fabric-loader}",
+    "fabric-api": ">=${fabric-api}",
+    "minecraft": ">=${minecraft}",
+    "architectury": ">=${architectury}",
+    "badpackets": ">=${badpackets}"
   }
 }

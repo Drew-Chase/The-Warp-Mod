@@ -42,7 +42,7 @@ authors = "Drew Chase" #optional
 
 # The description text for the mod (multi line!) (#mandatory)
 description = '''
-The Warp Mod allows the creation of and travel to various warpManager locations.
+${description}
 '''
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
 [[dependencies.warpmod]] #optional
@@ -61,7 +61,7 @@ side = "SERVER"
 modId = "minecraft"
 mandatory = true
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
-versionRange = "[1.19.4,)"
+versionRange = "[${minecraft},)"
 ordering = "NONE"
 side = "SERVER"
 
@@ -70,7 +70,7 @@ side = "SERVER"
 modId = "architectury"
 mandatory = true
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
-versionRange = "[8.1.75,)"
+versionRange = "[${architectury},)"
 ordering = "BEFORE"
 side = "BOTH"
 
@@ -79,6 +79,6 @@ side = "BOTH"
 modId = "badpackets"
 mandatory = true
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
-versionRange = "[0.4.1,)"
+versionRange = "[${badpackets},)"
 ordering = "BEFORE"
 side = "BOTH"
