@@ -49,29 +49,31 @@ processResources {
     inputs.property "version", project.version
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
-        expand "fabric-api": rootProject.fabric_api_version
-        expand "fabric-loader": rootProject.fabric_loader_version
-        expand "minecraft": rootProject.minecraft_version
-        expand "badpackets": rootProject.badpackets_version
-        expand "architectury": rootProject.architectury_version
-        expand "description": rootProject.description
+        expand([
+                "version"     : project.version,
+                "api"         : rootProject.fabric_api_version,
+                "loader"      : rootProject.fabric_loader_version,
+                "minecraft"   : rootProject.minecraft_version,
+                "badpackets"  : rootProject.badpackets_version,
+                "architectury": rootProject.architectury_version,
+                "description" : rootProject.description,
+        ])
     }
 }
 
 shadowJar {
     configurations = [project.configurations.shadowCommon]
-    classifier "dev-shadow"
+    archiveClassifier.set("dev-shadow")
 }
 
 remapJar {
     input.set shadowJar.archiveFile
     dependsOn shadowJar
-    classifier null
+    archiveClassifier.set(null)
 }
 
 jar {
-    classifier "dev"
+    archiveClassifier.set("dev")
 }
 
 sourcesJar {

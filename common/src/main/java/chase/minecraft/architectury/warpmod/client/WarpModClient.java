@@ -3,7 +3,6 @@ package chase.minecraft.architectury.warpmod.client;
 import chase.minecraft.architectury.warpmod.data.WarpManager;
 import chase.minecraft.architectury.warpmod.networking.ClientNetworking;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
-import chase.minecraft.architectury.warpmod.worldmap.WorldmapThread;
 import com.google.common.collect.ImmutableList;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
@@ -44,7 +43,7 @@ public abstract class WarpModClient
 		
 		PlayerEvent.CHANGE_DIMENSION.register((player, oldLevel, newLevel) ->
 		{
-			if (!WarpModClient.dimensions.contains(newLevel.toString()))
+			if (!WarpModClient.dimensions.contains(newLevel.location().toString()))
 			{
 				WarpModClient.dimensions.add(newLevel.location().toString());
 			}
@@ -83,21 +82,16 @@ public abstract class WarpModClient
 	protected static void onServerLogin()
 	{
 		FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
-		PacketSender.c2s().send(WarpNetworking.LIST, data);
-		PacketSender.c2s().send(WarpNetworking.DIMENSIONS, new FriendlyByteBuf(Unpooled.buffer()));
-		data = new FriendlyByteBuf(Unpooled.buffer());
 		data.writeBoolean(true);
 		PacketSender.c2s().send(WarpNetworking.PING, data);
 		WarpManager.loadClient();
-		WorldmapThread.getInstance().start();
+//		WorldmapThread.getInstance().start();
 		
 	}
 	
 	protected static void onServerLogout()
 	{
-		WarpManager.saveClient();
-		
-		WorldmapThread.getInstance().interrupt();
+//		WorldmapThread.getInstance().interrupt();
 	}
 	
 	

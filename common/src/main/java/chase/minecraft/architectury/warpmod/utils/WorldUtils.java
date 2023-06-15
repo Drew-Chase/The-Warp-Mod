@@ -18,8 +18,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FireBlock;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +85,7 @@ public class WorldUtils
 			//-52, Y: 110, Z: -42
 //			if (level.getBlockState(pos).getBlock() == Blocks.VOID_AIR)
 //				break;
-			if (level.getBlockState(pos).getMaterial().blocksMotion() && level.getBlockState(pos).getBlock() != Blocks.BEDROCK)
+			if (level.getBlockState(pos).blocksMotion() && level.getBlockState(pos).getBlock() != Blocks.BEDROCK)
 			{
 				return pos.getY();
 			} else
@@ -102,7 +103,7 @@ public class WorldUtils
 		}
 		if (pos.getX() == -52 && pos.getY() == 110 && pos.getZ() == -42)
 		{
-			WarpMod.log.info("BLOCK: {}, BLOCKS MOTION: {}, BEDROCK?: {}", level.getBlockState(pos).getBlock().getName().getString(), level.getBlockState(pos).getMaterial().blocksMotion(), level.getBlockState(pos).getBlock() != Blocks.BEDROCK);
+			WarpMod.log.info("BLOCK: {}, BLOCKS MOTION: {}, BEDROCK?: {}", level.getBlockState(pos).getBlock().getName().getString(), level.getBlockState(pos).blocksMotion(), level.getBlockState(pos).getBlock() != Blocks.BEDROCK);
 			WarpMod.log.info("BLOCK: {}, X: {}, Y: {}, Z: {}", level.getBlockState(pos).getBlock().getName().getString(), pos.getX(), pos.getY(), pos.getZ());
 		}
 		return level.getMinBuildHeight() - 1;
@@ -134,14 +135,14 @@ public class WorldUtils
 		BlockState blockState = level.getBlockState(belowPos);
 		BlockState headBlockState = level.getBlockState(blockPos.above());
 		BlockState feetBlockState = level.getBlockState(blockPos);
-		boolean foundLiquid = feetBlockState.getMaterial().isLiquid() || feetBlockState.getMaterial() == Material.FIRE || headBlockState.getMaterial().isLiquid() || headBlockState.getMaterial() == Material.FIRE || blockState.getMaterial().isLiquid() || blockState.getMaterial() == Material.FIRE;
-		boolean legSafe = !feetBlockState.getMaterial().blocksMotion() && !feetBlockState.getMaterial().isLiquid() && feetBlockState.getMaterial() != Material.FIRE;
-		boolean headSafe = !headBlockState.getMaterial().blocksMotion() && !headBlockState.getMaterial().isLiquid() && headBlockState.getMaterial() != Material.FIRE;
+		boolean foundLiquid = feetBlockState.getBlock() instanceof LiquidBlock || feetBlockState.getBlock() instanceof FireBlock || headBlockState.getBlock() instanceof LiquidBlock || headBlockState.getBlock() instanceof FireBlock || blockState.getBlock() instanceof LiquidBlock || blockState.getBlock() instanceof FireBlock;
+		boolean legSafe = !feetBlockState.blocksMotion() && !(feetBlockState.getBlock() instanceof LiquidBlock) && !(feetBlockState.getBlock() instanceof FireBlock);
+		boolean headSafe = !headBlockState.blocksMotion() && !(headBlockState.getBlock() instanceof LiquidBlock) && !(headBlockState.getBlock() instanceof FireBlock);
 		if (foundLiquid)
 		{
 			return SaftyCheckResponse.UNSAFE;
 		}
-		if (blockState.getMaterial().blocksMotion() && headSafe && legSafe && level.isInWorldBounds(blockPos))
+		if (blockState.blocksMotion() && headSafe && legSafe && level.isInWorldBounds(blockPos))
 		{
 			return SaftyCheckResponse.SAFE;
 		}
@@ -196,7 +197,7 @@ public class WorldUtils
 	 */
 	public static boolean teleportRandom(ServerPlayer player, int min, int max, boolean sendMessage)
 	{
-		Vector4f cords = calculateRandom(player.getLevel(), player.getEyePosition(), min, max);
+		Vector4f cords = calculateRandom(player.serverLevel(), player.getEyePosition(), min, max);
 		int x = (int) cords.x;
 		int y = (int) cords.y;
 		int z = (int) cords.z;
@@ -334,11 +335,6 @@ public class WorldUtils
 		}
 	}
 	
-	public static String getLevelName(ResourceLocation level)
-	{
-		return level.getPath().replaceAll("_", " ").toUpperCase();
-	}
-	
 	
 	public static Path getWarpDirectory()
 	{
@@ -361,5 +357,17 @@ public class WorldUtils
 		return Path.of(getWarpDirectory().toString(), "warps.dat").toFile();
 	}
 	
+	public static String getDimensionName(ResourceLocation location)
+	{
+		String unformatted = location.getPath().replaceAll("_", " ").replaceAll("-", "");
+		StringBuilder builder = new StringBuilder();
+		for (String part : unformatted.split(" "))
+		{
+			builder.append(part.substring(0, 1).toUpperCase());
+			builder.append(part.substring(1));
+			builder.append(" ");
+		}
+		return builder.toString().trim();
+	}
 	
 }

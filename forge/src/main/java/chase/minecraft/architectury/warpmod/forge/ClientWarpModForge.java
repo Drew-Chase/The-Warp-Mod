@@ -12,16 +12,17 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 public class ClientWarpModForge extends WarpModClient
 {
 	
+	
 	@SubscribeEvent
 	static void renderOverlay(final RenderGuiOverlayEvent.Pre event)
 	{
-		GUIFactory.PreGameOverlay(event.getPoseStack());
+		GUIFactory.PreGameOverlay(event.getGuiGraphics());
 	}
 	
 	@SubscribeEvent
 	static void renderOverlay(final RenderGuiOverlayEvent.Post event)
 	{
-		GUIFactory.PostGameOverlay(event.getPoseStack());
+		GUIFactory.PostGameOverlay(event.getGuiGraphics().pose());
 	}
 	
 	

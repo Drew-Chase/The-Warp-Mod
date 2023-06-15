@@ -12,7 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.level.material.MapColor;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -57,7 +57,7 @@ public class MapRegion
 				}
 				if (currentPos.getY() > level.getMinBuildHeight())
 				{
-					MaterialColor color = level.getBlockState(currentPos).getMapColor(level, currentPos);
+					MapColor color = level.getBlockState(currentPos).getMapColor(level, currentPos);
 					int r = FastColor.ARGB32.red(color.col);
 					int g = FastColor.ARGB32.green(color.col);
 					int b = FastColor.ARGB32.blue(color.col);

@@ -11,11 +11,11 @@ import chase.minecraft.architectury.warpmod.data.WaypointIcons;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.vertex.PoseStack;
 import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.PacketSender;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -79,8 +79,8 @@ public class EditWarpScreen extends Screen
 		_parent = parent;
 		assert Minecraft.getInstance().player != null;
 		player = Minecraft.getInstance().player;
-		warp = new Warp("", player.getX(), player.getEyeY(), player.getZ(), player.getYRot(), player.getXRot(), player.level.dimension().location(), player);
-		dimension = player.level.dimension().location();
+		warp = new Warp("", player.getX(), player.getEyeY(), player.getZ(), player.getYRot(), player.getXRot(), player.level().dimension().location(), player);
+		dimension = player.level().dimension().location();
 		ogName = "";
 		this.icon = warp.getIcon().getPath();
 		
@@ -168,19 +168,19 @@ public class EditWarpScreen extends Screen
 	}
 	
 	@Override
-	public void render(@NotNull PoseStack matrixStack, int x, int y, float partialTicks)
+	public void render(@NotNull GuiGraphics graphics, int x, int y, float partialTicks)
 	{
-		renderBackground(matrixStack);
-		drawCenteredString(matrixStack, this.font, getTitle(), width / 2, font.lineHeight, ChatFormatting.WHITE.getColor());
-		drawString(matrixStack, font, _nameBox.getMessage(), _nameBox.getX(), _nameBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
-		drawString(matrixStack, font, _xBox.getMessage(), _xBox.getX(), _xBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
-		drawString(matrixStack, font, _yBox.getMessage(), _yBox.getX(), _yBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
-		drawString(matrixStack, font, _zBox.getMessage(), _zBox.getX(), _zBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
-		drawString(matrixStack, font, _pitchBox.getMessage(), _pitchBox.getX(), _pitchBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
-		drawString(matrixStack, font, _yawBox.getMessage(), _yawBox.getX(), _yawBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
-		drawString(matrixStack, font, Component.translatable("warpmod.edit.dim"), _dimensionButton.getX(), _dimensionButton.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
-		drawString(matrixStack, font, Component.translatable("warpmod.edit.icon"), _iconButton.getX(), _iconButton.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
-		drawString(matrixStack, font, Component.translatable("warpmod.edit.color"), _colorButton.getX(), _colorButton.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
+		renderBackground(graphics);
+		graphics.drawCenteredString(this.font, getTitle(), width / 2, font.lineHeight, ChatFormatting.WHITE.getColor());
+		graphics.drawString(font, _nameBox.getMessage(), _nameBox.getX(), _nameBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
+		graphics.drawString(font, _xBox.getMessage(), _xBox.getX(), _xBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
+		graphics.drawString(font, _yBox.getMessage(), _yBox.getX(), _yBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
+		graphics.drawString(font, _zBox.getMessage(), _zBox.getX(), _zBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
+		graphics.drawString(font, _pitchBox.getMessage(), _pitchBox.getX(), _pitchBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
+		graphics.drawString(font, _yawBox.getMessage(), _yawBox.getX(), _yawBox.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
+		graphics.drawString(font, Component.translatable("warpmod.edit.dim"), _dimensionButton.getX(), _dimensionButton.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
+		graphics.drawString(font, Component.translatable("warpmod.edit.icon"), _iconButton.getX(), _iconButton.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
+		graphics.drawString(font, Component.translatable("warpmod.edit.color"), _colorButton.getX(), _colorButton.getY() - font.lineHeight - 5, ChatFormatting.GRAY.getColor());
 		
 		if (_nameBox.getValue().isEmpty())
 		{
@@ -207,7 +207,7 @@ public class EditWarpScreen extends Screen
 		if (_xBox.getValue().isEmpty()) _xBox.setSuggestion(Double.toString((int) (player.getX() * 100) / 100d));
 		else _xBox.setSuggestion("");
 		
-		super.render(matrixStack, x, y, partialTicks);
+		super.render(graphics, x, y, partialTicks);
 	}
 	
 	private void initCycleButtons()
@@ -217,7 +217,7 @@ public class EditWarpScreen extends Screen
 		{
 			ResourceLocation dimension = new ResourceLocation(WarpModClient.dimensions.get(i));
 			
-			dimensions.put(dimension, WorldUtils.getLevelName(dimension));
+			dimensions.put(dimension, WorldUtils.getDimensionName(dimension));
 		}
 		_dimensionButton = new DropdownWidget<ResourceLocation>(0, 0, 100, 20, this.dimension, dimensions, value ->
 		{
@@ -245,7 +245,7 @@ public class EditWarpScreen extends Screen
 			String dim = new ResourceLocation(dimensions).getPath().replaceAll("_", " ").toUpperCase();
 			tooltip.append("\n");
 			tooltip.append("%s%s%s".formatted(ChatFormatting.GREEN, dim, ChatFormatting.GOLD));
-			if (player.level.dimension().location().toString().equalsIgnoreCase(dimensions))
+			if (player.level().dimension().location().toString().equalsIgnoreCase(dimensions))
 			{
 				tooltip.append(" - AUTO");
 			}

@@ -1,8 +1,8 @@
 package chase.minecraft.architectury.warpmod.client.gui.screen;
 
 import chase.minecraft.architectury.warpmod.client.gui.component.PlayerListComponent;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -38,11 +38,11 @@ public class PlayerListScreen extends Screen
 	}
 	
 	@Override
-	public void render(PoseStack poseStack, int x, int y, float partialTicks)
+	public void render(GuiGraphics graphics, int x, int y, float partialTicks)
 	{
-		renderBackground(poseStack);
-		playerListComponent.render(poseStack, x, y, partialTicks);
-		drawCenteredString(poseStack, font, title.getString(), (width / 2) - (font.width(title.getString()) / 2), font.lineHeight, ChatFormatting.WHITE.getColor());
-		super.render(poseStack, x, y, partialTicks);
+		renderBackground(graphics);
+		playerListComponent.render(graphics, x, y, partialTicks);
+		graphics.drawCenteredString( font, title.getString(), (width / 2) - (font.width(title.getString()) / 2), font.lineHeight, ChatFormatting.WHITE.getColor());
+		super.render(graphics, x, y, partialTicks);
 	}
 }

@@ -5,14 +5,15 @@ import chase.minecraft.architectury.warpmod.client.gui.screen.EditWarpScreen;
 import chase.minecraft.architectury.warpmod.data.Warp;
 import chase.minecraft.architectury.warpmod.data.WarpManager;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
+import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.PacketSender;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Objects;
 
 import static chase.minecraft.architectury.warpmod.client.gui.GUIFactory.createButton;
 
@@ -45,8 +47,8 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 		{
 			PacketSender.c2s().send(WarpNetworking.LIST, new FriendlyByteBuf(Unpooled.buffer()));
 		}
-		refreshEntries();
 		this.filter = filter;
+		refreshEntries();
 	}
 	
 	@Override
@@ -65,11 +67,12 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 	{
 		WarpManager.loadClient();
 		clearEntries();
+		if (minecraft.player == null) return;
 		for (Warp warp : WarpManager.fromPlayer(minecraft.player).getWarps())
 		{
-			if (filter != null && !filter.isEmpty())
+			if (filter != null && !filter.isEmpty() && !Objects.equals(filter, "ALL"))
 			{
-				if (warp.getDimension().toString().equals(filter))
+				if (WorldUtils.getDimensionName(warp.getDimension()).equals(filter))
 				{
 					addEntry(new WarpEntry(warp));
 				}
@@ -151,19 +154,19 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 		}
 		
 		@Override
-		public void render(@NotNull PoseStack poseStack, int x, int y, int uk, int widgetWidth, int widgetHeight, int mouseX, int mouseY, boolean isHovering, float partialTicks)
+		public void render(@NotNull GuiGraphics graphics, int x, int y, int uk, int widgetWidth, int widgetHeight, int mouseX, int mouseY, boolean isHovering, float partialTicks)
 		{
 			int parentWidth = WarpListComponent.this.width;
 			
 			if (isHovering)
 			{
 				RenderSystem.setShaderColor(0f, 0f, 0f, .5f);
-				fill(poseStack, x, y, x + parentWidth, y + widgetHeight, 0xFF_FF_FF_FF);
+				graphics.fill(x, y, x + parentWidth, y + widgetHeight, 0xFF_FF_FF_FF);
 				RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 			}
 			
 			// Render Label
-			WarpListComponent.this.minecraft.font.draw(poseStack, this.name, 20, y + minecraft.font.lineHeight, 0xFF_FF_FF);
+			graphics.drawString(WarpListComponent.this.minecraft.font, this.name, 20, y + minecraft.font.lineHeight, 0xFF_FF_FF);
 			
 			// Render Buttons
 			int buttonPadding = 4;
@@ -178,7 +181,7 @@ public class WarpListComponent extends ContainerObjectSelectionList<WarpListComp
 				button.setX(buttonLastX);
 				
 				button.setY(y + (widgetHeight / 2) - (button.getHeight() / 2));
-				button.render(poseStack, mouseX, mouseY, partialTicks);
+				button.render(graphics, mouseX, mouseY, partialTicks);
 			}
 		}
 		

@@ -3,8 +3,11 @@ package chase.minecraft.architectury.warpmod.networking;
 import chase.minecraft.architectury.warpmod.client.WarpModClient;
 import chase.minecraft.architectury.warpmod.client.gui.screen.WarpListScreen;
 import chase.minecraft.architectury.warpmod.data.WarpManager;
+import io.netty.buffer.Unpooled;
+import lol.bai.badpackets.api.PacketSender;
 import lol.bai.badpackets.api.S2CPacketReceiver;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 
 import java.nio.charset.Charset;
 
@@ -22,6 +25,7 @@ public class ClientNetworking extends WarpNetworking
 		{
 			CompoundTag data = buf.readNbt();
 			assert data != null;
+			assert client.player != null;
 			WarpManager warpManager = WarpManager.fromPlayer(client.player);
 			warpManager.fromNbt(data);
 			if (client.screen instanceof WarpListScreen screen)
@@ -42,8 +46,14 @@ public class ClientNetworking extends WarpNetworking
 			int length = buf.readInt();
 			WarpModClient.remoteVersion = buf.readCharSequence(length, Charset.defaultCharset()).toString();
 			WarpModClient.isOP = buf.readBoolean();
+			
+			
+			FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
+			PacketSender.c2s().send(WarpNetworking.LIST, data);
+			PacketSender.c2s().send(WarpNetworking.DIMENSIONS, data);
 		});
-		S2CPacketReceiver.register(MIRROR, (client, handler, buf, responseSender) -> {
+		S2CPacketReceiver.register(MIRROR, (client, handler, buf, responseSender) ->
+		{
 		
 		});
 	}

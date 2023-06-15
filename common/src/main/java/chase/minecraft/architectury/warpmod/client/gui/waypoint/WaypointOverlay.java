@@ -6,7 +6,7 @@ import chase.minecraft.architectury.warpmod.data.WaypointIcons;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
@@ -14,7 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("all")
-public class WaypointOverlay extends GuiComponent
+public class WaypointOverlay
 {
 	private int currentSize = WaypointIcons.SIZE;
 	@NotNull
@@ -39,11 +39,13 @@ public class WaypointOverlay extends GuiComponent
 	 *
 	 * @param poseStack A matrix stack used for rendering transformations and positioning of the waypoint icon and label.
 	 */
-	public void render(PoseStack poseStack)
+	public void render(GuiGraphics graphics)
 	{
+		PoseStack poseStack = graphics.pose();
+		
 		Vec3 screenSpace = RenderUtils.worldSpaceToScreenSpace(warp.getPosition());
 		ResourceLocation warpDim = warp.getDimension();
-		ResourceLocation playerDim = minecraft.player.level.dimension().location();
+		ResourceLocation playerDim = minecraft.player.level().dimension().location();
 		boolean isVisible = warpDim.equals(playerDim) && RenderUtils.screenSpaceCoordinateIsVisible(screenSpace);
 		distanceToWarp = minecraft.getEntityRenderDispatcher().camera.getPosition().distanceTo(new Vec3(warp.getX(), warp.getY(), warp.getZ()));
 		
@@ -63,9 +65,9 @@ public class WaypointOverlay extends GuiComponent
 			if (warp.getIcon() == null) RenderSystem.setShaderTexture(0, WaypointIcons.DEFAULT);
 			else RenderSystem.setShaderTexture(0, warp.getIcon());
 			
-			renderIcon(poseStack, x, y);
+			renderIcon(graphics, x, y);
 			if (RenderUtils.isLookingAt(warp.getPosition()))
-				renderLabel(poseStack, x, y);
+				renderLabel(graphics, x, y);
 			
 			RenderSystem.depthMask(true);
 			RenderSystem.enableDepthTest();
@@ -81,46 +83,48 @@ public class WaypointOverlay extends GuiComponent
 	 * @param x         The x-coordinate of the top-left corner of the area where the texture will be rendered.
 	 * @param y         The y parameter is the vertical position where the icon will be rendered on the screen.
 	 */
-	private void renderIcon(PoseStack poseStack, int x, int y)
+	private void renderIcon(GuiGraphics graphics, int x, int y)
 	{
+		PoseStack poseStack = graphics.pose();
 		poseStack.pushPose();
 		calcScale();
-		blit(poseStack, x + ((WaypointIcons.SIZE - currentSize) / 2), y + (WaypointIcons.SIZE - currentSize), 0, 0, currentSize, currentSize, currentSize, currentSize);
+		graphics.blit(warp.getIcon(), x + ((WaypointIcons.SIZE - currentSize) / 2), y + (WaypointIcons.SIZE - currentSize), 0, 0, currentSize, currentSize, currentSize, currentSize);
 		poseStack.popPose();
 	}
+	
 	
 	/**
 	 * This function renders a label with a background and centered text.
 	 *
-	 * @param poseStack The PoseStack is a matrix stack used for rendering transformations in Minecraft. It is used to store and apply transformations such as translation, rotation, and scaling to the rendered objects.
-	 * @param x         The x-coordinate of the position where the label will be rendered on the screen.
-	 * @param y         The y parameter is the vertical coordinate of where the label will be rendered on the screen.
+	 * @param graphics The PoseStack is a matrix stack used for rendering transformations in Minecraft. It is used to store and apply transformations such as translation, rotation, and scaling to the rendered objects.
+	 * @param x        The x-coordinate of the position where the label will be rendered on the screen.
+	 * @param y        The y parameter is the vertical coordinate of where the label will be rendered on the screen.
 	 */
-	private void renderLabel(PoseStack poseStack, int x, int y)
+	private void renderLabel(GuiGraphics graphics, int x, int y)
 	{
 		String text = getDisplayName();
-		renderLabelBackground(poseStack, x, y, minecraft.font.width(text));
+		renderLabelBackground(graphics, x, y, minecraft.font.width(text));
 		
 		// Draws Text
-		drawCenteredString(poseStack, minecraft.font, text, x + WaypointIcons.SIZE / 2, y + WaypointIcons.SIZE + 5, color);
+		graphics.drawCenteredString(minecraft.font, text, x + WaypointIcons.SIZE / 2, y + WaypointIcons.SIZE + 5, color);
 	}
 	
 	/**
 	 * This function renders a background for a label with a given position and text width.
 	 *
-	 * @param poseStack A PoseStack is a matrix stack used for rendering transformations in Minecraft. It is used to store and apply transformations such as translation, rotation, and scaling to the rendered objects.
+	 * @param graphics  A PoseStack is a matrix stack used for rendering transformations in Minecraft. It is used to store and apply transformations such as translation, rotation, and scaling to the rendered objects.
 	 * @param x         The x-coordinate of the label's center point.
 	 * @param y         The y-coordinate of the top of the label background.
 	 * @param textWidth The width of the text that will be rendered on the label background.
 	 */
-	private void renderLabelBackground(PoseStack poseStack, int x, int y, int textWidth)
+	private void renderLabelBackground(GuiGraphics graphics, int x, int y, int textWidth)
 	{
 		// Draw Background
 		final int padding = 2;
 		RenderSystem.setShaderColor(0f, 0f, 0f, .5f);
 		int startX = x - (padding + (textWidth / 2)) + (WaypointIcons.SIZE / 2);
 		int endX = (int) (startX + (padding * 2) + textWidth);
-		fill(poseStack, startX, y + WaypointIcons.SIZE, endX, y + WaypointIcons.SIZE + minecraft.font.lineHeight + 10, -0x00_00_00_FF);
+		graphics.fill(startX, y + WaypointIcons.SIZE, endX, y + WaypointIcons.SIZE + minecraft.font.lineHeight + 10, -0x00_00_00_FF);
 		RenderSystem.setShaderColor(r, g, b, 1f);
 	}
 	

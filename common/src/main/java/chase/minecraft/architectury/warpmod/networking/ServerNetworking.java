@@ -8,6 +8,7 @@ import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.C2SPacketReceiver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -23,6 +24,10 @@ public class ServerNetworking extends WarpNetworking
 	{
 		C2SPacketReceiver.register(LIST, (server, player, handler, buf, responseSender) ->
 		{
+			if (server.isSingleplayer())
+			{
+				return;
+			}
 			WarpManager warpManager = WarpManager.fromPlayer(player);
 //			try
 //			{
@@ -41,7 +46,7 @@ public class ServerNetworking extends WarpNetworking
 //
 //			}
 			CompoundTag data = new CompoundTag();
-			data.put("warpManager", warpManager.toNbt());
+			data.put("warpManager", warpManager.toNbt().getList("warps", ListTag.TAG_COMPOUND));
 			FriendlyByteBuf dataBuf = new FriendlyByteBuf(Unpooled.buffer());
 			dataBuf.writeNbt(data);
 			server.execute(() ->
@@ -72,6 +77,10 @@ public class ServerNetworking extends WarpNetworking
 		
 		C2SPacketReceiver.register(CREATE, (server, player, handler, buf, responseSender) ->
 		{
+			if (server.isSingleplayer())
+			{
+				return;
+			}
 			int length = buf.readInt();
 			String ogName = buf.readCharSequence(length, Charset.defaultCharset()).toString();
 			CompoundTag tag = buf.readNbt();
@@ -117,6 +126,11 @@ public class ServerNetworking extends WarpNetworking
 		
 		C2SPacketReceiver.register(PING, ((server, player, handler, buf, responseSender) ->
 		{
+			if (server.isSingleplayer())
+			{
+				return;
+			}
+			
 			String version = Platform.getMod(WarpMod.MOD_ID).getVersion();
 			boolean isOP = player.hasPermissions(4);
 			FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
@@ -132,7 +146,7 @@ public class ServerNetworking extends WarpNetworking
 				{
 					player.sendSystemMessage(Component.literal("%sThe Warp Mod%s version %s%s%s is installed on the server!".formatted(ChatFormatting.GOLD, ChatFormatting.GREEN, ChatFormatting.GOLD, version, ChatFormatting.GREEN)));
 				}
-			} catch (Exception e)
+			} catch (Exception ignored)
 			{
 			}
 			server.execute(() ->

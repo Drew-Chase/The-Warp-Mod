@@ -3,10 +3,10 @@ package chase.minecraft.architectury.warpmod.client.gui.component;
 import chase.minecraft.architectury.warpmod.networking.WarpNetworking;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import io.netty.buffer.Unpooled;
 import lol.bai.badpackets.api.PacketSender;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
@@ -102,18 +102,18 @@ public class PlayerListComponent extends ContainerObjectSelectionList<PlayerList
 		
 		
 		@Override
-		public void render(@NotNull PoseStack poseStack, int x, int y, int uk, int widgetWidth, int widgetHeight, int mouseX, int mouseY, boolean isHovering, float partialTicks)
+		public void render(@NotNull GuiGraphics graphics, int x, int y, int uk, int widgetWidth, int widgetHeight, int mouseX, int mouseY, boolean isHovering, float partialTicks)
 		{
 			int parentWidth = PlayerListComponent.this.width;
 			
 			// Render Label
-			poseStack.pushPose();
+			graphics.pose().pushPose();
 			Supplier<ResourceLocation> skinGetter = playerInfo::getSkinLocation;
 			RenderSystem.setShaderTexture(0, skinGetter.get());
-			PlayerFaceRenderer.draw(poseStack, 5, (int) (y + ((float) PlayerListComponent.this.minecraft.font.lineHeight / 2)), 24);
-			poseStack.popPose();
+			PlayerFaceRenderer.draw(graphics, playerInfo.getSkinLocation(), 5, (int) (y + ((float) PlayerListComponent.this.minecraft.font.lineHeight / 2)), 24);
+			graphics.pose().popPose();
 			
-			PlayerListComponent.this.minecraft.font.draw(poseStack, this.label, 24 + 10, (y + ((float) PlayerListComponent.this.minecraft.font.lineHeight / 2)), 0xFF_FF_FF);
+			graphics.drawString(PlayerListComponent.this.minecraft.font, this.label, 24 + 10, (int) (y + ((float) PlayerListComponent.this.minecraft.font.lineHeight / 2)), 0xFF_FF_FF);
 			
 			// Render Buttons
 			int buttonPadding = 4;
@@ -126,7 +126,7 @@ public class PlayerListComponent extends ContainerObjectSelectionList<PlayerList
 				button.setX(buttonLastX);
 				
 				button.setY(y);
-				button.render(poseStack, mouseX, mouseY, partialTicks);
+				button.render(graphics, mouseX, mouseY, partialTicks);
 			}
 		}
 		

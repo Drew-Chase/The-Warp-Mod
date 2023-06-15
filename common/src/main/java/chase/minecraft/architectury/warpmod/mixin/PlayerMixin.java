@@ -4,6 +4,7 @@ import chase.minecraft.architectury.warpmod.data.Warp;
 import chase.minecraft.architectury.warpmod.data.WarpManager;
 import chase.minecraft.architectury.warpmod.utils.WorldUtils;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,14 +21,18 @@ public class PlayerMixin
 	public void addAdditionalSaveData(CompoundTag compoundTag, CallbackInfo cbi)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		compoundTag.put("warps", WarpManager.fromPlayer(player).toNbt());
+		compoundTag.put("warps", WarpManager.fromPlayer(player).toNbt().getList("warps", ListTag.TAG_COMPOUND));
 	}
 	
 	@Inject(at = @At("RETURN"), method = "readAdditionalSaveData")
 	public void readAdditionalSaveData(CompoundTag compoundTag, CallbackInfo cbi)
 	{
 		ServerPlayer player = (ServerPlayer) ((Object) this);
-		WarpManager.fromPlayer(player).fromNbt(compoundTag);
+		ListTag warps = compoundTag.getList("warps", ListTag.TAG_COMPOUND);
+		if (warps.size() != 0)
+		{
+			WarpManager.fromPlayer(player).fromNbt(compoundTag);
+		}
 	}
 	
 	@Inject(at = @At("HEAD"), method = "disconnect")

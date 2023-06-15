@@ -21,6 +21,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class WarpManager
 	private static ConcurrentHashMap<Player, WarpManager> _instance;
 	private final ConcurrentHashMap<String, Warp> warps;
 	private final Player player;
-	private ClientServerWarpShareMethod shareMethod;
+	private ClientServerWarpShareMethod shareMethod = ClientServerWarpShareMethod.MIRROR_CLIENT;
 	
 	/**
 	 * This is a constructor for the WarpManager class that takes a Player object as a parameter.
@@ -50,7 +51,7 @@ public class WarpManager
 	 *
 	 * @param player The player who is warping.
 	 */
-	private WarpManager(Player player)
+	private WarpManager(@NotNull Player player)
 	{
 		this.player = player;
 		if (_instance == null)
@@ -73,7 +74,7 @@ public class WarpManager
 	 * @param player The player who is warping.
 	 * @return A new instance of the WarpManager class.
 	 */
-	public static WarpManager fromPlayer(Player player)
+	public static WarpManager fromPlayer(@NotNull Player player)
 	{
 		return new WarpManager(player);
 	}
@@ -94,16 +95,18 @@ public class WarpManager
 		}
 		warps.put(warp.getName(), warp);
 		saveClient();
+		
 		return WarpCreationResponseType.Success;
 	}
 	
 	/**
 	 * Renames a warp with the given name to the new name.
 	 *
-	 * @param name original name of the warp to be renamed
+	 * @param name     original name of the warp to be renamed
 	 * @param new_name new name for the warp
 	 */
-	public void rename(String name, String new_name) {
+	public void rename(String name, String new_name)
+	{
 		Warp old = get(name);
 		remove(name);
 		old.update(new_name, old.getX(), old.getY(), old.getZ(), old.getPitch(), old.getYaw(), old.getDimension(), old.getColor(), old.getIcon());
@@ -181,9 +184,11 @@ public class WarpManager
 	
 	/**
 	 * Updates the share method used in the Client-Server warp communication.
+	 *
 	 * @param method The new share method to be used.
 	 */
-	public void updateShareMethod(ClientServerWarpShareMethod method){
+	public void updateShareMethod(ClientServerWarpShareMethod method)
+	{
 		shareMethod = method;
 	}
 	
@@ -192,14 +197,17 @@ public class WarpManager
 	 *
 	 * @return NBTData
 	 */
-	public ListTag toNbt()
+	public CompoundTag toNbt()
 	{
+		CompoundTag tag = new CompoundTag();
+		tag.putString("share_method", this.shareMethod.name());
 		ListTag listTag = new ListTag();
 		for (Warp warp : warps.values())
 		{
 			listTag.add(warp.toNbt());
 		}
-		return listTag;
+		tag.put("warps", listTag);
+		return tag;
 	}
 	
 	/**
@@ -209,7 +217,7 @@ public class WarpManager
 	 */
 	public void fromNbt(CompoundTag tag)
 	{
-		warps.clear();
+		ConcurrentHashMap<String, Warp> tmp = new ConcurrentHashMap<>();
 		try
 		{
 			try
@@ -226,12 +234,14 @@ public class WarpManager
 			{
 				CompoundTag item = listTag.getCompound(i);
 				Warp warp = Warp.fromTag(item, player);
-				warps.put(warp.getName(), warp);
+				tmp.put(warp.getName(), warp);
 			}
 		} catch (Exception e)
 		{
 			WarpMod.log.error(String.format("Unable to load Player Warp NBT: %s", e.getMessage()));
 		}
+		warps.clear();
+		warps.putAll(tmp);
 		WarpMod.log.info(String.format("%d WarpManager found for %s", warps.size(), player.getDisplayName().getString()));
 	}
 	
@@ -268,10 +278,12 @@ public class WarpManager
 	 *
 	 * @return an array of all deathpoints in the list of warps.
 	 */
-	public Warp[] getDeathpoints() {
+	public Warp[] getDeathpoints()
+	{
 		List<Warp> deathpoints = new ArrayList<>();
 		
-		for (Warp warp : getWarps()) {
+		for (Warp warp : getWarps())
+		{
 			if (warp.isDeathpoint())
 				deathpoints.add(warp);
 		}
@@ -292,7 +304,7 @@ public class WarpManager
 		// Add the share method to the tag.
 		tag.putString("share_method", shareMethod.name());
 		// Add the warps to the tag.
-		tag.put("warps", toNbt());
+		tag.put("warps", toNbt().getList("warps", ListTag.TAG_COMPOUND));
 		
 		try
 		{
@@ -352,7 +364,8 @@ public class WarpManager
 		ServerData serverData = client.getCurrentServer();
 		LocalPlayer player = client.player;
 		// Save the player's warps.
-		WarpManager.fromPlayer(player).saveClient(serverData);
+		if (player != null)
+			WarpManager.fromPlayer(player).saveClient(serverData);
 	}
 	
 	/**
@@ -365,7 +378,8 @@ public class WarpManager
 		ServerData serverData = client.getCurrentServer();
 		LocalPlayer player = client.player;
 		// Load the player's warps.
-		WarpManager.fromPlayer(player).loadClient(serverData);
+		if (player != null)
+			WarpManager.fromPlayer(player).loadClient(serverData);
 	}
 	
 }

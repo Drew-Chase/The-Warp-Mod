@@ -14,7 +14,12 @@ public class WarpModForge
 		// Submit our event bus to let architectury register our content on the right time
 		EventBuses.registerModEventBus(WarpMod.MOD_ID, FMLJavaModLoadingContext.get().getModEventBus());
 		WarpMod.init();
-		WarpModClient.init();
+		try
+		{
+			WarpModClient.init();
+		} catch (RuntimeException ignored)
+		{
+		}
 	}
 	
 }

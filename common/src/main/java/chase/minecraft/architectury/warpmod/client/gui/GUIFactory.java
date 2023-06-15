@@ -10,10 +10,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 
 import java.util.function.Consumer;
@@ -99,18 +101,24 @@ public class GUIFactory
 		return button;
 	}
 	
-	public static void PreGameOverlay(PoseStack poseStack){
-		
+	public static void PreGameOverlay(GuiGraphics graphics)
+	{
 		RenderProfiler.begin("HUD");
-		for (Warp warp : WarpManager.fromPlayer(Minecraft.getInstance().player).getWarps())
+		LocalPlayer player = Minecraft.getInstance().player;
+		if (player != null)
 		{
-			WaypointOverlay overlay = new WaypointOverlay(warp);
-			overlay.render(poseStack);
+			for (Warp warp : WarpManager.fromPlayer(player).getWarps())
+			{
+				WaypointOverlay overlay = new WaypointOverlay(warp);
+				overlay.render(graphics);
+			}
 		}
 		RenderProfiler.pop();
 		
 	}
-	public static void PostGameOverlay(PoseStack poseStack){
+	
+	public static void PostGameOverlay(PoseStack poseStack)
+	{
 		
 		RenderProfiler.begin("Level");
 		RenderUtils.lastProjMat.set(RenderSystem.getProjectionMatrix());

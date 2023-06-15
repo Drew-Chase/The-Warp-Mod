@@ -27,8 +27,8 @@
     "warpmod-common.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=${fabric-loader}",
-    "fabric-api": ">=${fabric-api}",
+    "fabricloader": ">=${loader}",
+    "fabric-api": ">=${api}",
     "minecraft": ">=${minecraft}",
     "architectury": ">=${architectury}",
     "badpackets": ">=${badpackets}"

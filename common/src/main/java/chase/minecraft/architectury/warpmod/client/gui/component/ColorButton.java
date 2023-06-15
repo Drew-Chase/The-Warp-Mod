@@ -2,9 +2,9 @@ package chase.minecraft.architectury.warpmod.client.gui.component;
 
 import chase.minecraft.architectury.warpmod.client.gui.waypoint.WaypointColor;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -64,22 +64,22 @@ public class ColorButton extends AbstractButton
 	}
 	
 	@Override
-	public void render(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks)
+	public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		if (this.visible)
 		{
 			this.setMessage(Component.literal(color.getName()));
 			this.isHovered = mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
-			this.renderWidget(poseStack, mouseX, mouseY, partialTicks);
+			this.renderWidget(graphics, mouseX, mouseY, partialTicks);
 			if (isHovered)
 			{
-//				renderTooltip(poseStack, mouseX, mouseY, partialTicks);
+//				renderTooltip(graphics, mouseX, mouseY, partialTicks);
 			}
 		}
 	}
 	
 	@Override
-	public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks)
+	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		Minecraft minecraft = Minecraft.getInstance();
 		int color = this.color.getColor();
@@ -96,14 +96,14 @@ public class ColorButton extends AbstractButton
 		}
 		RenderSystem.enableBlend();
 		RenderSystem.enableDepthTest();
-		fill(poseStack, getX(), getY(), getX() + width, getY() + height, 0xFF_FF_FF_FF);
+		graphics.fill(getX(), getY(), getX() + width, getY() + height, 0xFF_FF_FF_FF);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		
 		int textColor = this.active ? 16777215 : 10526880;
-		this.renderString(poseStack, minecraft.font, textColor | Mth.ceil(this.alpha * 255.0F) << 24);
+		this.renderString(graphics, minecraft.font, textColor | Mth.ceil(this.alpha * 255.0F) << 24);
 	}
 	
-	public void renderTooltip(PoseStack poseStack, int mouseX, int mouseY, float partialTicks)
+	public void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		Minecraft minecraft = Minecraft.getInstance();
 		int color = this.color.getColor();
@@ -115,11 +115,11 @@ public class ColorButton extends AbstractButton
 		RenderSystem.setShaderColor(r, g, b, 1f);
 		RenderSystem.enableBlend();
 		RenderSystem.enableDepthTest();
-		fill(poseStack, getX(), getY(), mouseX + width, mouseY + height, 0xFF_FF_FF_FF);
+		graphics.fill(getX(), getY(), mouseX + width, mouseY + height, 0xFF_FF_FF_FF);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		
 		int textColor = this.active ? 16777215 : 10526880;
-		this.renderString(poseStack, minecraft.font, textColor | Mth.ceil(this.alpha * 255.0F) << 24);
+		this.renderString(graphics, minecraft.font, textColor | Mth.ceil(this.alpha * 255.0F) << 24);
 	}
 	
 	@Override

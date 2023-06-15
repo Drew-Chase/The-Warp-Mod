@@ -1,6 +1,7 @@
 package chase.minecraft.architectury.warpmod.server;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 import java.util.Timer;
 
